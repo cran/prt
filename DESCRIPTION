@@ -1,6 +1,6 @@
 Package: prt
 Title: Tabular Data Backed by Partitioned 'fst' Files
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(person(given = "Nicolas",
                     family = "Bennett",
                     role = c("aut", "cre"),
@@ -22,9 +22,9 @@ LazyData: true
 RoxygenNote: 7.1.0
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2020-08-11 14:42:03 UTC; nbennett
+Packaged: 2020-09-02 19:31:44 UTC; nbennett
 Author: Nicolas Bennett [aut, cre],
   Drago Plecko [ctb]
 Maintainer: Nicolas Bennett <nicolas.bennett@stat.math.ethz.ch>
 Repository: CRAN
-Date/Publication: 2020-08-18 09:40:06 UTC
+Date/Publication: 2020-09-02 19:50:03 UTC
