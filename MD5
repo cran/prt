@@ -1,8 +1,8 @@
-567f8107da9f6a1047c996b750a74229 *DESCRIPTION
-ec3b5d98ce09dbcd06614c3343eeb11a *NAMESPACE
-59709aca028e665f99fbaaba59e62822 *NEWS.md
-d7bb5721181ca0b600e33a6aae95d43f *R/format.R
-4569105a9315a3e8e29f439ed074ac59 *R/glimpse.R
+6a59be341d03d15597842090fcd9de59 *DESCRIPTION
+19211d2d63e46318735afa3f05d98a36 *NAMESPACE
+5cc176c5359686975e34151f7213288c *NEWS.md
+76bfdf9b56f39a6a10f7338358d8d704 *R/format.R
+f465c8b7314d25193bec1a6fae47a044 *R/glimpse.R
 882d645625af40554605746823a1cffd *R/nse.R
 f50b575d0566d0e62c90ac4f8e8e1294 *R/prt.R
 00b55dc85687af1765e4dd926f9de80d *R/subset.R
@@ -12,7 +12,7 @@ faa1957c2147cb76409ecf2c5051d64f *README.md
 15303a982139322743b4f01b4cc6f2dc *build/vignette.rds
 71546aa41143572c575fe1b2b2e5b987 *inst/doc/prt.R
 a5f828192973c78947ecfd857f24eb34 *inst/doc/prt.Rmd
-6a26653e7c106790daa035b3ac5712ba *inst/doc/prt.html
+af42c743a261fba5e5d5fa6b2eaa92af *inst/doc/prt.html
 7450e77b3578fd90e6d80d6587bb01b9 *man/formatting.Rd
 194a61fa46d1bbdb31a92f6bb2b95cba *man/glimpse.Rd
 f2afe19da8a8972d9e1b8359693521cf *man/new_prt.Rd
@@ -42,9 +42,10 @@ cd61c0eeec84f98f9e80fefbbc5b89e3 *tests/testthat/output/glimpse/all-70.txt
 0c33913a81168b95838a7b85ec4a832a *tests/testthat/output/glimpse/non-syntactic.txt
 3a97089613edc3405ab05ef6f12894ad *tests/testthat/output/str/mtcars-10.txt
 ef4d35cf36c3ca6746faf88c6f034f6c *tests/testthat/output/str/mtcars-100.txt
+638fe9a1abaded1fe26bafe8ed4dc660 *tests/testthat/output/str/mtcars-len.txt
 f12bf2706463c25df2cda61b8f816796 *tests/testthat/output/str/mtcars.txt
 3c7b75423af3b2d2ef2701b066471e01 *tests/testthat/test-format.R
-56eb9b97f18031dea61b2928d3d1cfdd *tests/testthat/test-glimpse.R
+54d0d224ed25772138c21a1e9f820f53 *tests/testthat/test-glimpse.R
 fd8e231d0dff357c610cb0e2925aeae8 *tests/testthat/test-nse.R
 bd0281dbd9ac82bf051b014e364f0a29 *tests/testthat/test-prt.R
 c58d8c03659330b78363cadae63ffef9 *tests/testthat/test-subsetting.R
