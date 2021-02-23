@@ -57,10 +57,10 @@ subset(flights, month == month, 1L:7L)
 identical(jan_dt, subset(flights, month == !!month))
 identical(jan_dt, subset(flights, .env$month == .data$month))
 
-## ----nse-issue1, error = TRUE-------------------------------------------------
+## ----nse-issue1---------------------------------------------------------------
 subset(flights, select = year:day)
 
-## ----nse-issue2, error = TRUE-------------------------------------------------
+## ----nse-issue2---------------------------------------------------------------
 sched_dep_time <- "dep_time"
 colnames(subset(flights, select = sched_dep_time))
 
@@ -70,6 +70,7 @@ colnames(subset(flights, select = actual_dep_time))
 colnames(subset(flights, select = .env$sched_dep_time))
 colnames(subset(flights, select = .env$actual_dep_time))
 
+## ----nse-issue3, error = TRUE, eval = getRversion() > "3.5.0"-----------------
 colnames(subset(flights, select = .data$sched_dep_time))
 colnames(subset(flights, select = .data$actual_dep_time))
 

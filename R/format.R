@@ -44,6 +44,8 @@
 #' print(cars, width = 30, n_extra = 2)
 #'
 #' @inheritParams tibble::print.tbl
+#'
+#' @importFrom utils packageVersion
 #' @importFrom tibble tbl_sum
 #'
 #' @rdname formatting
@@ -102,7 +104,7 @@ trunc_dt <- function(x, n = NULL, width = NULL, n_extra = NULL) {
   shrunk <- shrink_dt(df, rows)
 
   if (shrunk$rows_missing > 0L) {
-    rowid <- add_in_between(rowid, n, ellipsis())
+    rowid <- add_in_between(rowid, n, cli::symbol$ellipsis)
   }
 
   trunc_info <- list(
@@ -142,31 +144,6 @@ format.trunc_dt <- function(x, width = NULL, ...) {
   )
 }
 
-#' @importFrom knitr knit_print
-#'
-#' @export
-#'
-knit_print.trunc_dt <- function(x, options) {
-
-  header <- format_header(x)
-  summary <- paste0(names(header), ": ", header)
-
-  squeezed <- squeeze_dt(x, width = x$width)
-
-  kable <- knitr::knit_print(squeezed)
-  extra <- format_footer(x, squeezed)
-
-  if (length(extra) > 0) {
-    extra <- wrap("(", collapse(extra), ")", width = x$width)
-  } else {
-    extra <- "\n"
-  }
-
-  res <- paste(c("", "", summary, "", kable, "", extra), collapse = "\n")
-  knitr::asis_output(crayon::strip_style(res), cacheable = TRUE)
-}
-
-
 shrink_dt <- function(df, rows) {
 
   n <- nrow(df)
@@ -185,29 +162,55 @@ shrink_dt <- function(df, rows) {
 
 add_empty_row <- function(x) {
 
+  if (length(x) == 0L) {
+    return(x)
+  }
+
+  add_row <- function(x) {
+    if (length(x) == 0L) return(x)
+    mid <- (length(x) - 2L) / 2L
+    res <- c(head(x, n = mid + 2L), " ", tail(x, n = mid))
+    structure(res, class = class(x))
+  }
+
   add_shaft <- function(x, n) {
     x[["shaft_format"]] <- add_in_between(x[["shaft_format"]], n, " ")
     x
   }
 
-  if (length(x) == 0L) {
-    return(x)
+  if (packageVersion("pillar") < "1.5.0") {
+
+    n <- length(x[[1L]][[1L]][["shaft_format"]]) / 2L
+
+    lapply(x, lapply, add_shaft, n)
+
+  } else {
+
+    lapply(x, add_row)
   }
-
-  n <- length(x[[1L]][[1L]][["shaft_format"]]) / 2L
-
-  lapply(x, lapply, add_shaft, n)
 }
 
 add_row_id <- function(x, rowid) {
 
-  do_add <- function(x, width, id) {
-    c(list(list(capital_format = rep(strrep(" ", width), 2L),
-                shaft_format = format(id))), x)
-  }
-
   if (length(x) == 0L) {
     return(x)
+  }
+
+  if (packageVersion("pillar") < "1.5.0") {
+
+    do_add <- function(x, width, id) {
+      c(list(list(capital_format = rep(strrep(" ", width), 2L),
+                  shaft_format = format(id))), x)
+    }
+
+  } else {
+
+    do_add <- function(x, width, id) {
+      if (length(x) == 0L) return(x)
+      res <- paste(c(rep(strrep(" ", width), 2L),
+                   format(id, justify = "right")), x)
+      structure(res, class = class(x))
+    }
   }
 
   lapply(x, do_add, max(crayon::col_nchar(rowid)), rowid)
@@ -288,13 +291,13 @@ format_extra_vars <- function(extra_cols) {
   if (is.na(extra_cols[1])) return("")
 
   if (anyNA(extra_cols)) {
-    extra_cols <- c(extra_cols[!is.na(extra_cols)], ellipsis())
+    extra_cols <- c(extra_cols[!is.na(extra_cols)], cli::symbol$ellipsis)
   }
 
   paste0(": ", collapse(extra_cols))
 }
 
 pre_dots <- function(x) {
-  if (length(x) > 0) paste0(ellipsis(), " ", x)
+  if (length(x) > 0) paste0(cli::symbol$ellipsis, " ", x)
   else character()
 }

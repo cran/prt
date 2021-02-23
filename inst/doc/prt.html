@@ -27,6 +27,31 @@ document.addEventListener('DOMContentLoaded', function(e) {
   }
 });
 </script>
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
 
 <style type="text/css">code{white-space: pre;}</style>
@@ -116,6 +141,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 })();
 </script>
+
 
 
 
@@ -365,12 +391,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb2-4"><a href="#cb2-4"></a><span class="co">#&gt; # Partitioning: [168,388, 168,388] rows</span></span>
 <span id="cb2-5"><a href="#cb2-5"></a><span class="co">#&gt;          year month   day dep_time sched_dep_time dep_delay arr_time</span></span>
 <span id="cb2-6"><a href="#cb2-6"></a><span class="co">#&gt;         &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;</span></span>
-<span id="cb2-7"><a href="#cb2-7"></a><span class="co">#&gt; 1        2013     1     1      517            515         2      830</span></span>
-<span id="cb2-8"><a href="#cb2-8"></a><span class="co">#&gt; 2        2013     1     1      533            529         4      850</span></span>
-<span id="cb2-9"><a href="#cb2-9"></a><span class="co">#&gt; 3        2013     1     1      542            540         2      923</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a><span class="co">#&gt; 4        2013     1     1      544            545        -1     1004</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a><span class="co">#&gt; 5        2013     1     1      554            600        -6      812</span></span>
-<span id="cb2-12"><a href="#cb2-12"></a><span class="co">#&gt; …</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="co">#&gt;       1  2013     1     1      517            515         2      830</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a><span class="co">#&gt;       2  2013     1     1      533            529         4      850</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a><span class="co">#&gt;       3  2013     1     1      542            540         2      923</span></span>
+<span id="cb2-10"><a href="#cb2-10"></a><span class="co">#&gt;       4  2013     1     1      544            545        -1     1004</span></span>
+<span id="cb2-11"><a href="#cb2-11"></a><span class="co">#&gt;       5  2013     1     1      554            600        -6      812</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a><span class="co">#&gt;       …</span></span>
 <span id="cb2-13"><a href="#cb2-13"></a><span class="co">#&gt; 336,772  2013     9    30       NA           1455        NA       NA</span></span>
 <span id="cb2-14"><a href="#cb2-14"></a><span class="co">#&gt; 336,773  2013     9    30       NA           2200        NA       NA</span></span>
 <span id="cb2-15"><a href="#cb2-15"></a><span class="co">#&gt; 336,774  2013     9    30       NA           1210        NA       NA</span></span>
@@ -391,12 +417,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb3-8"><a href="#cb3-8"></a><span class="co">#&gt; # Partitioning: [182,128, 154,648] rows</span></span>
 <span id="cb3-9"><a href="#cb3-9"></a><span class="co">#&gt;          year month   day dep_time sched_dep_time dep_delay arr_time</span></span>
 <span id="cb3-10"><a href="#cb3-10"></a><span class="co">#&gt;         &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;</span></span>
-<span id="cb3-11"><a href="#cb3-11"></a><span class="co">#&gt; 1        2013     1     1      557            600        -3      709</span></span>
-<span id="cb3-12"><a href="#cb3-12"></a><span class="co">#&gt; 2        2013     1     1      624            630        -6      909</span></span>
-<span id="cb3-13"><a href="#cb3-13"></a><span class="co">#&gt; 3        2013     1     1      632            608        24      740</span></span>
-<span id="cb3-14"><a href="#cb3-14"></a><span class="co">#&gt; 4        2013     1     1      809            815        -6     1043</span></span>
-<span id="cb3-15"><a href="#cb3-15"></a><span class="co">#&gt; 5        2013     1     1      811            815        -4     1006</span></span>
-<span id="cb3-16"><a href="#cb3-16"></a><span class="co">#&gt; …</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="co">#&gt;       1  2013     1     1      557            600        -3      709</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a><span class="co">#&gt;       2  2013     1     1      624            630        -6      909</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a><span class="co">#&gt;       3  2013     1     1      632            608        24      740</span></span>
+<span id="cb3-14"><a href="#cb3-14"></a><span class="co">#&gt;       4  2013     1     1      809            815        -6     1043</span></span>
+<span id="cb3-15"><a href="#cb3-15"></a><span class="co">#&gt;       5  2013     1     1      811            815        -4     1006</span></span>
+<span id="cb3-16"><a href="#cb3-16"></a><span class="co">#&gt;       …</span></span>
 <span id="cb3-17"><a href="#cb3-17"></a><span class="co">#&gt; 336,772  2013     9    30     1955           2000        -5     2219</span></span>
 <span id="cb3-18"><a href="#cb3-18"></a><span class="co">#&gt; 336,773  2013     9    30     1956           1825        91     2208</span></span>
 <span id="cb3-19"><a href="#cb3-19"></a><span class="co">#&gt; 336,774  2013     9    30     2041           2045        -4     2147</span></span>
@@ -470,8 +496,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb7-6"><a href="#cb7-6"></a><span class="co">#&gt; # A tibble: 2 x 6</span></span>
 <span id="cb7-7"><a href="#cb7-7"></a><span class="co">#&gt;   expression                             min median `itr/sec` mem_alloc `gc/sec`</span></span>
 <span id="cb7-8"><a href="#cb7-8"></a><span class="co">#&gt;   &lt;bch:expr&gt;                          &lt;bch:&gt; &lt;bch:&gt;     &lt;dbl&gt; &lt;bch:byt&gt;    &lt;dbl&gt;</span></span>
-<span id="cb7-9"><a href="#cb7-9"></a><span class="co">#&gt; 1 subset(flights, carrier == &quot;AA&quot;)    72.3ms 81.6ms      11.8    56.5MB     19.7</span></span>
-<span id="cb7-10"><a href="#cb7-10"></a><span class="co">#&gt; 2 subset(by_carrier, carrier == &quot;AA&quot;)   20ms 23.1ms      39.2    17.8MB     13.7</span></span></code></pre></div>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="co">#&gt; 1 subset(flights, carrier == &quot;AA&quot;)    92.6ms 97.7ms      9.41    56.5MB     16.9</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="co">#&gt; 2 subset(by_carrier, carrier == &quot;AA&quot;) 23.9ms 27.5ms     32.9     17.8MB     11.6</span></span></code></pre></div>
 <p>A common problem with non-standard evaluation (NSE) is potential ambiguity. Symbols in expressions passed as <code>subset</code> and <code>select</code> arguments are first resolved in the context of the data, followed by the environment the expression was created in (the <a href="https://rlang.r-lib.org/reference/nse-defuse.html">quosure</a> environment). Expressions are evaluated using <code>rlang::eval_tidy()</code>, which makes possible the distinction between symbols referring to the data mask from those referring to the expression environment. This can either be achieved using the <code>.data</code> and <code>.env</code> pronouns or by <a href="https://rlang.r-lib.org/reference/nse-force.html">forcing parts of the expression</a>.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>month &lt;-<span class="st"> </span>1L</span>
 <span id="cb8-2"><a href="#cb8-2"></a><span class="kw">subset</span>(flights, month <span class="op">==</span><span class="st"> </span>month, 1L<span class="op">:</span>7L)</span>
@@ -518,76 +544,75 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb10-9"><a href="#cb10-9"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> .env<span class="op">$</span>sched_dep_time))</span>
 <span id="cb10-10"><a href="#cb10-10"></a><span class="co">#&gt; [1] &quot;dep_time&quot;</span></span>
 <span id="cb10-11"><a href="#cb10-11"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> .env<span class="op">$</span>actual_dep_time))</span>
-<span id="cb10-12"><a href="#cb10-12"></a><span class="co">#&gt; [1] &quot;dep_time&quot;</span></span>
-<span id="cb10-13"><a href="#cb10-13"></a></span>
-<span id="cb10-14"><a href="#cb10-14"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> .data<span class="op">$</span>sched_dep_time))</span>
-<span id="cb10-15"><a href="#cb10-15"></a><span class="co">#&gt; [1] &quot;sched_dep_time&quot;</span></span>
-<span id="cb10-16"><a href="#cb10-16"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> .data<span class="op">$</span>actual_dep_time))</span>
-<span id="cb10-17"><a href="#cb10-17"></a><span class="co">#&gt; Error: Column `actual_dep_time` not found in `.data`</span></span></code></pre></div>
+<span id="cb10-12"><a href="#cb10-12"></a><span class="co">#&gt; [1] &quot;dep_time&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> .data<span class="op">$</span>sched_dep_time))</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="co">#&gt; [1] &quot;sched_dep_time&quot;</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> .data<span class="op">$</span>actual_dep_time))</span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="co">#&gt; Error: Column `actual_dep_time` not found in `.data`</span></span></code></pre></div>
 <p>By default, <code>subset</code> expressions have to be evaluated on the entire dataset at once in order to be consistent with base R <code>subset()</code> for <code>data.frames</code>. Often times this is inefficient and this behavior can be modified using the <code>part_saft</code> argument. Consider the following query which selects all rows where the arrival delay is larger than the mean arrival delay. Obviously an expression like this can yield different results depending on whether it is evaluated on individual partitions or over the entire data. Other queries such as the one above where we threshold on a fixed value, however can safely be evaluated on partitions individually.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>is_true &lt;-<span class="st"> </span><span class="cf">function</span>(x) <span class="op">!</span><span class="kw">is.na</span>(x) <span class="op">&amp;</span><span class="st"> </span>x</span>
-<span id="cb11-2"><a href="#cb11-2"></a>expr &lt;-<span class="st"> </span><span class="kw">quote</span>(<span class="kw">is_true</span>(arr_delay <span class="op">&gt;</span><span class="st"> </span><span class="kw">mean</span>(arr_delay, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)))</span>
-<span id="cb11-3"><a href="#cb11-3"></a><span class="kw">nrow</span>(<span class="kw">subset_quo</span>(flights, expr, <span class="dt">part_safe =</span> <span class="ot">FALSE</span>))</span>
-<span id="cb11-4"><a href="#cb11-4"></a><span class="co">#&gt; [1] 105827</span></span>
-<span id="cb11-5"><a href="#cb11-5"></a><span class="kw">nrow</span>(<span class="kw">subset_quo</span>(flights, expr, <span class="dt">part_safe =</span> <span class="ot">TRUE</span>))</span>
-<span id="cb11-6"><a href="#cb11-6"></a><span class="co">#&gt; [1] 104752</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>is_true &lt;-<span class="st"> </span><span class="cf">function</span>(x) <span class="op">!</span><span class="kw">is.na</span>(x) <span class="op">&amp;</span><span class="st"> </span>x</span>
+<span id="cb12-2"><a href="#cb12-2"></a>expr &lt;-<span class="st"> </span><span class="kw">quote</span>(<span class="kw">is_true</span>(arr_delay <span class="op">&gt;</span><span class="st"> </span><span class="kw">mean</span>(arr_delay, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)))</span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="kw">nrow</span>(<span class="kw">subset_quo</span>(flights, expr, <span class="dt">part_safe =</span> <span class="ot">FALSE</span>))</span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="co">#&gt; [1] 105827</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="kw">nrow</span>(<span class="kw">subset_quo</span>(flights, expr, <span class="dt">part_safe =</span> <span class="ot">TRUE</span>))</span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="co">#&gt; [1] 104752</span></span></code></pre></div>
 <p>As an aside, in addition to <code>subset()</code>, which creates quosures from the expressions passed as <code>subset</code> and <code>select</code>, (using <code>rlang::enquo()</code>) the function <code>subset_quo()</code> which operates on already quoted expressions is exported as well. Thanks to the double curly brace forwarding operator introduced in rlang 0.4.0, this escape-hatch mechanism however is of lesser importance.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>col_safe_subset &lt;-<span class="st"> </span><span class="cf">function</span>(x, expr, cols) {</span>
-<span id="cb12-2"><a href="#cb12-2"></a>  <span class="kw">stopifnot</span>(<span class="kw">is_prt</span>(x), <span class="kw">is.character</span>(cols))</span>
-<span id="cb12-3"><a href="#cb12-3"></a>  <span class="kw">subset</span>(x, {{ expr }}, .env<span class="op">$</span>cols)</span>
-<span id="cb12-4"><a href="#cb12-4"></a>}</span>
-<span id="cb12-5"><a href="#cb12-5"></a></span>
-<span id="cb12-6"><a href="#cb12-6"></a>air_time &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;dep_time&quot;</span>, <span class="st">&quot;arr_time&quot;</span>)</span>
-<span id="cb12-7"><a href="#cb12-7"></a><span class="kw">col_safe_subset</span>(flights, month <span class="op">==</span><span class="st"> </span>1L, air_time)</span>
-<span id="cb12-8"><a href="#cb12-8"></a><span class="co">#&gt;        dep_time arr_time</span></span>
-<span id="cb12-9"><a href="#cb12-9"></a><span class="co">#&gt;     1:      517      830</span></span>
-<span id="cb12-10"><a href="#cb12-10"></a><span class="co">#&gt;     2:      533      850</span></span>
-<span id="cb12-11"><a href="#cb12-11"></a><span class="co">#&gt;     3:      542      923</span></span>
-<span id="cb12-12"><a href="#cb12-12"></a><span class="co">#&gt;     4:      544     1004</span></span>
-<span id="cb12-13"><a href="#cb12-13"></a><span class="co">#&gt;     5:      554      812</span></span>
-<span id="cb12-14"><a href="#cb12-14"></a><span class="co">#&gt;    ---                  </span></span>
-<span id="cb12-15"><a href="#cb12-15"></a><span class="co">#&gt; 27000:       NA       NA</span></span>
-<span id="cb12-16"><a href="#cb12-16"></a><span class="co">#&gt; 27001:       NA       NA</span></span>
-<span id="cb12-17"><a href="#cb12-17"></a><span class="co">#&gt; 27002:       NA       NA</span></span>
-<span id="cb12-18"><a href="#cb12-18"></a><span class="co">#&gt; 27003:       NA       NA</span></span>
-<span id="cb12-19"><a href="#cb12-19"></a><span class="co">#&gt; 27004:       NA       NA</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>col_safe_subset &lt;-<span class="st"> </span><span class="cf">function</span>(x, expr, cols) {</span>
+<span id="cb13-2"><a href="#cb13-2"></a>  <span class="kw">stopifnot</span>(<span class="kw">is_prt</span>(x), <span class="kw">is.character</span>(cols))</span>
+<span id="cb13-3"><a href="#cb13-3"></a>  <span class="kw">subset</span>(x, {{ expr }}, .env<span class="op">$</span>cols)</span>
+<span id="cb13-4"><a href="#cb13-4"></a>}</span>
+<span id="cb13-5"><a href="#cb13-5"></a></span>
+<span id="cb13-6"><a href="#cb13-6"></a>air_time &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;dep_time&quot;</span>, <span class="st">&quot;arr_time&quot;</span>)</span>
+<span id="cb13-7"><a href="#cb13-7"></a><span class="kw">col_safe_subset</span>(flights, month <span class="op">==</span><span class="st"> </span>1L, air_time)</span>
+<span id="cb13-8"><a href="#cb13-8"></a><span class="co">#&gt;        dep_time arr_time</span></span>
+<span id="cb13-9"><a href="#cb13-9"></a><span class="co">#&gt;     1:      517      830</span></span>
+<span id="cb13-10"><a href="#cb13-10"></a><span class="co">#&gt;     2:      533      850</span></span>
+<span id="cb13-11"><a href="#cb13-11"></a><span class="co">#&gt;     3:      542      923</span></span>
+<span id="cb13-12"><a href="#cb13-12"></a><span class="co">#&gt;     4:      544     1004</span></span>
+<span id="cb13-13"><a href="#cb13-13"></a><span class="co">#&gt;     5:      554      812</span></span>
+<span id="cb13-14"><a href="#cb13-14"></a><span class="co">#&gt;    ---                  </span></span>
+<span id="cb13-15"><a href="#cb13-15"></a><span class="co">#&gt; 27000:       NA       NA</span></span>
+<span id="cb13-16"><a href="#cb13-16"></a><span class="co">#&gt; 27001:       NA       NA</span></span>
+<span id="cb13-17"><a href="#cb13-17"></a><span class="co">#&gt; 27002:       NA       NA</span></span>
+<span id="cb13-18"><a href="#cb13-18"></a><span class="co">#&gt; 27003:       NA       NA</span></span>
+<span id="cb13-19"><a href="#cb13-19"></a><span class="co">#&gt; 27004:       NA       NA</span></span></code></pre></div>
 <p>In addition to subsetting, concise and informative printing is another area which effort ha been put into. Inspired by (and liberally borrowing code from) <code>tibble</code>, the <code>print()</code> method of <code>fst</code> objects adds the <code>data.table</code> approach of showing both the first and last <code>n</code> rows of the table in question. This functionality can be used by other classes used to represent tabular data, as the function <code>trunc_dt()</code> driving this is exported. All that is required are implementations of the base S3 generic functions <code>dim()</code>, <code>head()</code>, <code>tail()</code> and of course <code>print()</code>.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>new_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(...) <span class="kw">structure</span>(<span class="kw">list</span>(...), <span class="dt">class =</span> <span class="st">&quot;my_tbl&quot;</span>)</span>
-<span id="cb13-2"><a href="#cb13-2"></a></span>
-<span id="cb13-3"><a href="#cb13-3"></a>dim.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
-<span id="cb13-4"><a href="#cb13-4"></a>  rows &lt;-<span class="st"> </span><span class="kw">unique</span>(<span class="kw">lengths</span>(x))</span>
-<span id="cb13-5"><a href="#cb13-5"></a>  <span class="kw">stopifnot</span>(<span class="kw">length</span>(rows) <span class="op">==</span><span class="st"> </span>1L)</span>
-<span id="cb13-6"><a href="#cb13-6"></a>  <span class="kw">c</span>(rows, <span class="kw">length</span>(x))</span>
-<span id="cb13-7"><a href="#cb13-7"></a>}</span>
-<span id="cb13-8"><a href="#cb13-8"></a>head.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">n =</span> 6L, ...) {</span>
-<span id="cb13-9"><a href="#cb13-9"></a>  <span class="kw">as.data.frame</span>(<span class="kw">lapply</span>(x, <span class="st">`</span><span class="dt">[</span><span class="st">`</span>, <span class="kw">seq_len</span>(n)))</span>
-<span id="cb13-10"><a href="#cb13-10"></a>}</span>
-<span id="cb13-11"><a href="#cb13-11"></a>tail.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">n =</span> 6L, ...) {</span>
-<span id="cb13-12"><a href="#cb13-12"></a>  <span class="kw">as.data.frame</span>(<span class="kw">lapply</span>(x, <span class="st">`</span><span class="dt">[</span><span class="st">`</span>, <span class="kw">seq</span>(<span class="kw">nrow</span>(x) <span class="op">-</span><span class="st"> </span>n <span class="op">+</span><span class="st"> </span>1L, <span class="kw">nrow</span>(x))))</span>
-<span id="cb13-13"><a href="#cb13-13"></a>}</span>
-<span id="cb13-14"><a href="#cb13-14"></a>print.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x, ..., <span class="dt">n =</span> <span class="ot">NULL</span>, <span class="dt">width =</span> <span class="ot">NULL</span>, <span class="dt">n_extra =</span> <span class="ot">NULL</span>) {</span>
-<span id="cb13-15"><a href="#cb13-15"></a>  out &lt;-<span class="st"> </span><span class="kw">format</span>(<span class="kw">trunc_dt</span>(x, <span class="dt">n =</span> n, <span class="dt">width =</span> width, <span class="dt">n_extra =</span> n_extra))</span>
-<span id="cb13-16"><a href="#cb13-16"></a>  <span class="kw">cat</span>(<span class="kw">paste0</span>(out, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>), <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)</span>
-<span id="cb13-17"><a href="#cb13-17"></a>  <span class="kw">invisible</span>(x)</span>
-<span id="cb13-18"><a href="#cb13-18"></a>}</span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">new_tbl</span>(<span class="dt">a =</span> letters, <span class="dt">b =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">26</span>)</span>
-<span id="cb14-2"><a href="#cb14-2"></a><span class="co">#&gt; # Description: my_tbl</span></span>
-<span id="cb14-3"><a href="#cb14-3"></a><span class="co">#&gt;    a         b</span></span>
-<span id="cb14-4"><a href="#cb14-4"></a><span class="co">#&gt;    &lt;chr&gt; &lt;int&gt;</span></span>
-<span id="cb14-5"><a href="#cb14-5"></a><span class="co">#&gt; 1  a         1</span></span>
-<span id="cb14-6"><a href="#cb14-6"></a><span class="co">#&gt; 2  b         2</span></span>
-<span id="cb14-7"><a href="#cb14-7"></a><span class="co">#&gt; 3  c         3</span></span>
-<span id="cb14-8"><a href="#cb14-8"></a><span class="co">#&gt; 4  d         4</span></span>
-<span id="cb14-9"><a href="#cb14-9"></a><span class="co">#&gt; 5  e         5</span></span>
-<span id="cb14-10"><a href="#cb14-10"></a><span class="co">#&gt; …     </span></span>
-<span id="cb14-11"><a href="#cb14-11"></a><span class="co">#&gt; 22 v        22</span></span>
-<span id="cb14-12"><a href="#cb14-12"></a><span class="co">#&gt; 23 w        23</span></span>
-<span id="cb14-13"><a href="#cb14-13"></a><span class="co">#&gt; 24 x        24</span></span>
-<span id="cb14-14"><a href="#cb14-14"></a><span class="co">#&gt; 25 y        25</span></span>
-<span id="cb14-15"><a href="#cb14-15"></a><span class="co">#&gt; 26 z        26</span></span>
-<span id="cb14-16"><a href="#cb14-16"></a><span class="co">#&gt; # … with 16 more rows</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>new_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(...) <span class="kw">structure</span>(<span class="kw">list</span>(...), <span class="dt">class =</span> <span class="st">&quot;my_tbl&quot;</span>)</span>
+<span id="cb14-2"><a href="#cb14-2"></a></span>
+<span id="cb14-3"><a href="#cb14-3"></a>dim.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
+<span id="cb14-4"><a href="#cb14-4"></a>  rows &lt;-<span class="st"> </span><span class="kw">unique</span>(<span class="kw">lengths</span>(x))</span>
+<span id="cb14-5"><a href="#cb14-5"></a>  <span class="kw">stopifnot</span>(<span class="kw">length</span>(rows) <span class="op">==</span><span class="st"> </span>1L)</span>
+<span id="cb14-6"><a href="#cb14-6"></a>  <span class="kw">c</span>(rows, <span class="kw">length</span>(x))</span>
+<span id="cb14-7"><a href="#cb14-7"></a>}</span>
+<span id="cb14-8"><a href="#cb14-8"></a>head.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">n =</span> 6L, ...) {</span>
+<span id="cb14-9"><a href="#cb14-9"></a>  <span class="kw">as.data.frame</span>(<span class="kw">lapply</span>(x, <span class="st">`</span><span class="dt">[</span><span class="st">`</span>, <span class="kw">seq_len</span>(n)))</span>
+<span id="cb14-10"><a href="#cb14-10"></a>}</span>
+<span id="cb14-11"><a href="#cb14-11"></a>tail.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">n =</span> 6L, ...) {</span>
+<span id="cb14-12"><a href="#cb14-12"></a>  <span class="kw">as.data.frame</span>(<span class="kw">lapply</span>(x, <span class="st">`</span><span class="dt">[</span><span class="st">`</span>, <span class="kw">seq</span>(<span class="kw">nrow</span>(x) <span class="op">-</span><span class="st"> </span>n <span class="op">+</span><span class="st"> </span>1L, <span class="kw">nrow</span>(x))))</span>
+<span id="cb14-13"><a href="#cb14-13"></a>}</span>
+<span id="cb14-14"><a href="#cb14-14"></a>print.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x, ..., <span class="dt">n =</span> <span class="ot">NULL</span>, <span class="dt">width =</span> <span class="ot">NULL</span>, <span class="dt">n_extra =</span> <span class="ot">NULL</span>) {</span>
+<span id="cb14-15"><a href="#cb14-15"></a>  out &lt;-<span class="st"> </span><span class="kw">format</span>(<span class="kw">trunc_dt</span>(x, <span class="dt">n =</span> n, <span class="dt">width =</span> width, <span class="dt">n_extra =</span> n_extra))</span>
+<span id="cb14-16"><a href="#cb14-16"></a>  <span class="kw">cat</span>(<span class="kw">paste0</span>(out, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>), <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)</span>
+<span id="cb14-17"><a href="#cb14-17"></a>  <span class="kw">invisible</span>(x)</span>
+<span id="cb14-18"><a href="#cb14-18"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">new_tbl</span>(<span class="dt">a =</span> letters, <span class="dt">b =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">26</span>)</span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="co">#&gt; # Description: my_tbl</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="co">#&gt;    a         b</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="co">#&gt;    &lt;chr&gt; &lt;int&gt;</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a><span class="co">#&gt;  1 a         1</span></span>
+<span id="cb15-6"><a href="#cb15-6"></a><span class="co">#&gt;  2 b         2</span></span>
+<span id="cb15-7"><a href="#cb15-7"></a><span class="co">#&gt;  3 c         3</span></span>
+<span id="cb15-8"><a href="#cb15-8"></a><span class="co">#&gt;  4 d         4</span></span>
+<span id="cb15-9"><a href="#cb15-9"></a><span class="co">#&gt;  5 e         5</span></span>
+<span id="cb15-10"><a href="#cb15-10"></a><span class="co">#&gt;  …  </span></span>
+<span id="cb15-11"><a href="#cb15-11"></a><span class="co">#&gt; 22 v        22</span></span>
+<span id="cb15-12"><a href="#cb15-12"></a><span class="co">#&gt; 23 w        23</span></span>
+<span id="cb15-13"><a href="#cb15-13"></a><span class="co">#&gt; 24 x        24</span></span>
+<span id="cb15-14"><a href="#cb15-14"></a><span class="co">#&gt; 25 y        25</span></span>
+<span id="cb15-15"><a href="#cb15-15"></a><span class="co">#&gt; 26 z        26</span></span>
+<span id="cb15-16"><a href="#cb15-16"></a><span class="co">#&gt; # … with 16 more rows</span></span></code></pre></div>
 <p>Similarly, the function <code>glimpse_dt()</code> which can be used to implement a class-specific function for the <code>tibble</code> S3 generic <code>tibble::glimpse()</code>. In order to customize the text description of the object a class-specific function for the <code>tibble</code> S3 generic <code>tibble::tbl_sum()</code> can be provided.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">unlink</span>(tmp, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">unlink</span>(tmp, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
 
 
 
