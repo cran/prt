@@ -492,12 +492,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">subset</span>(flights, carrier <span class="op">==</span><span class="st"> &quot;AA&quot;</span>),</span>
 <span id="cb7-3"><a href="#cb7-3"></a>  <span class="kw">subset</span>(by_carrier, carrier <span class="op">==</span><span class="st"> &quot;AA&quot;</span>)</span>
 <span id="cb7-4"><a href="#cb7-4"></a>)</span>
-<span id="cb7-5"><a href="#cb7-5"></a><span class="co">#&gt; Warning: Some expressions had a GC in every iteration; so filtering is disabled.</span></span>
-<span id="cb7-6"><a href="#cb7-6"></a><span class="co">#&gt; # A tibble: 2 x 6</span></span>
-<span id="cb7-7"><a href="#cb7-7"></a><span class="co">#&gt;   expression                             min median `itr/sec` mem_alloc `gc/sec`</span></span>
-<span id="cb7-8"><a href="#cb7-8"></a><span class="co">#&gt;   &lt;bch:expr&gt;                          &lt;bch:&gt; &lt;bch:&gt;     &lt;dbl&gt; &lt;bch:byt&gt;    &lt;dbl&gt;</span></span>
-<span id="cb7-9"><a href="#cb7-9"></a><span class="co">#&gt; 1 subset(flights, carrier == &quot;AA&quot;)    92.6ms 97.7ms      9.41    56.5MB     16.9</span></span>
-<span id="cb7-10"><a href="#cb7-10"></a><span class="co">#&gt; 2 subset(by_carrier, carrier == &quot;AA&quot;) 23.9ms 27.5ms     32.9     17.8MB     11.6</span></span></code></pre></div>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="co">#&gt; # A tibble: 2 x 6</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a><span class="co">#&gt;   expression                               min   median `itr/sec` mem_alloc</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a><span class="co">#&gt;   &lt;bch:expr&gt;                          &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt; &lt;bch:byt&gt;</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a><span class="co">#&gt; 1 subset(flights, carrier == &quot;AA&quot;)     118.2ms  118.2ms      8.46    56.5MB</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="co">#&gt; 2 subset(by_carrier, carrier == &quot;AA&quot;)   32.7ms   37.1ms     23.8     17.8MB</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="co">#&gt; # … with 1 more variable: gc/sec &lt;dbl&gt;</span></span></code></pre></div>
 <p>A common problem with non-standard evaluation (NSE) is potential ambiguity. Symbols in expressions passed as <code>subset</code> and <code>select</code> arguments are first resolved in the context of the data, followed by the environment the expression was created in (the <a href="https://rlang.r-lib.org/reference/nse-defuse.html">quosure</a> environment). Expressions are evaluated using <code>rlang::eval_tidy()</code>, which makes possible the distinction between symbols referring to the data mask from those referring to the expression environment. This can either be achieved using the <code>.data</code> and <code>.env</code> pronouns or by <a href="https://rlang.r-lib.org/reference/nse-force.html">forcing parts of the expression</a>.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>month &lt;-<span class="st"> </span>1L</span>
 <span id="cb8-2"><a href="#cb8-2"></a><span class="kw">subset</span>(flights, month <span class="op">==</span><span class="st"> </span>month, 1L<span class="op">:</span>7L)</span>
@@ -596,7 +596,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb14-17"><a href="#cb14-17"></a>  <span class="kw">invisible</span>(x)</span>
 <span id="cb14-18"><a href="#cb14-18"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">new_tbl</span>(<span class="dt">a =</span> letters, <span class="dt">b =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">26</span>)</span>
-<span id="cb15-2"><a href="#cb15-2"></a><span class="co">#&gt; # Description: my_tbl</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="co">#&gt; # Description: my_tbl[,2]</span></span>
 <span id="cb15-3"><a href="#cb15-3"></a><span class="co">#&gt;    a         b</span></span>
 <span id="cb15-4"><a href="#cb15-4"></a><span class="co">#&gt;    &lt;chr&gt; &lt;int&gt;</span></span>
 <span id="cb15-5"><a href="#cb15-5"></a><span class="co">#&gt;  1 a         1</span></span>

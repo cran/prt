@@ -1,6 +1,6 @@
 Package: prt
 Title: Tabular Data Backed by Partitioned 'fst' Files
-Version: 0.1.3
+Version: 0.1.4
 Authors@R: c(person(given = "Nicolas",
                     family = "Bennett",
                     role = c("aut", "cre"),
@@ -14,17 +14,16 @@ URL: https://nbenn.github.io/prt/
 BugReports: https://github.com/nbenn/prt/issues
 License: GPL-3
 Imports: assertthat, fst, data.table, utils, vctrs, tibble, cli,
-        pillar, crayon, fansi, backports, rlang, knitr
+        pillar, crayon, fansi, backports, rlang,
 Suggests: testthat, xml2, covr, withr, nycflights13, datasets,
-        rmarkdown, bench
+        rmarkdown, knitr, bench
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2021-02-23 20:59:49 UTC; nbennett
+Packaged: 2021-05-16 07:24:22 UTC; nbennett
 Author: Nicolas Bennett [aut, cre],
   Drago Plecko [ctb]
 Maintainer: Nicolas Bennett <nicolas.bennett@stat.math.ethz.ch>
 Repository: CRAN
-Date/Publication: 2021-02-23 21:30:02 UTC
+Date/Publication: 2021-05-16 08:00:06 UTC
