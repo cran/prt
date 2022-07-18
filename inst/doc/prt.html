@@ -27,22 +27,6 @@ document.addEventListener('DOMContentLoaded', function(e) {
   }
 });
 </script>
-<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
-// v0.0.1
-// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
-
-document.addEventListener('DOMContentLoaded', function() {
-  const codeList = document.getElementsByClassName("sourceCode");
-  for (var i = 0; i < codeList.length; i++) {
-    var linkList = codeList[i].getElementsByTagName('a');
-    for (var j = 0; j < linkList.length; j++) {
-      if (linkList[j].innerHTML === "") {
-        linkList[j].setAttribute('aria-hidden', 'true');
-      }
-    }
-  }
-});
-</script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -54,11 +38,20 @@ document.addEventListener('DOMContentLoaded', function() {
     </style>
 
 
-<style type="text/css">code{white-space: pre;}</style>
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
@@ -341,278 +334,405 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<p>The <code>prt</code> object introduced by this package is intended to represent tabular data stored as one or more <a href="https://www.fstpackage.org"><code>fst</code></a> files. This is in similar spirit as <a href="https://diskframe.com"><code>disk.frame</code></a>, but is much less ambitious in scope and therefore much simpler in implementation. While the <code>disk.frame</code> package attempts to provide a <a href="https://dplyr.tidyverse.org"><code>dplyr</code></a> compliant API and offers parallel computation via the <a href="https://cran.r-project.org/package=future"><code>future</code></a> package, the intended use-case for <code>prt</code> objects is the situation where only a (small) subset of rows of the (large) tabular dataset are of interest for analysis at once. This subset can be specified using the base generic function <code>subset()</code> and the selected data is read into memory as a <code>data.table</code> object. Subsequent data operations and analysis is then preformed on this <code>data.table</code> representation. For this reason, partition-level parallelism is not in-scope for <code>prt</code> as <code>fst</code> already provides an efficient shared memory parallel implementation for decompression. Furthermore the much more complex multi-function non-standard evaluation API provided by <code>dplyr</code> was forgone in favor of the very simple one-function approach presented by the base R S3 generic function <code>subset()</code>.</p>
-<p>For the purpose of illustration of some <code>prt</code> features and particularities, we instantiate a dataset as <code>data.table</code> object and create a temporary directory which will contain the file-based data back ends.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>tmp &lt;-<span class="st"> </span><span class="kw">tempfile</span>()</span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">dir.create</span>((tmp))</span>
-<span id="cb1-3"><a href="#cb1-3"></a></span>
-<span id="cb1-4"><a href="#cb1-4"></a>dat &lt;-<span class="st"> </span>data.table<span class="op">::</span><span class="kw">setDT</span>(nycflights13<span class="op">::</span>flights)</span>
-<span id="cb1-5"><a href="#cb1-5"></a><span class="kw">print</span>(dat)</span>
-<span id="cb1-6"><a href="#cb1-6"></a><span class="co">#&gt;         year month day dep_time sched_dep_time dep_delay arr_time</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a><span class="co">#&gt;      1: 2013     1   1      517            515         2      830</span></span>
-<span id="cb1-8"><a href="#cb1-8"></a><span class="co">#&gt;      2: 2013     1   1      533            529         4      850</span></span>
-<span id="cb1-9"><a href="#cb1-9"></a><span class="co">#&gt;      3: 2013     1   1      542            540         2      923</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a><span class="co">#&gt;      4: 2013     1   1      544            545        -1     1004</span></span>
-<span id="cb1-11"><a href="#cb1-11"></a><span class="co">#&gt;      5: 2013     1   1      554            600        -6      812</span></span>
-<span id="cb1-12"><a href="#cb1-12"></a><span class="co">#&gt;     ---                                                          </span></span>
-<span id="cb1-13"><a href="#cb1-13"></a><span class="co">#&gt; 336772: 2013     9  30       NA           1455        NA       NA</span></span>
-<span id="cb1-14"><a href="#cb1-14"></a><span class="co">#&gt; 336773: 2013     9  30       NA           2200        NA       NA</span></span>
-<span id="cb1-15"><a href="#cb1-15"></a><span class="co">#&gt; 336774: 2013     9  30       NA           1210        NA       NA</span></span>
-<span id="cb1-16"><a href="#cb1-16"></a><span class="co">#&gt; 336775: 2013     9  30       NA           1159        NA       NA</span></span>
-<span id="cb1-17"><a href="#cb1-17"></a><span class="co">#&gt; 336776: 2013     9  30       NA            840        NA       NA</span></span>
-<span id="cb1-18"><a href="#cb1-18"></a><span class="co">#&gt;         sched_arr_time arr_delay carrier flight tailnum origin dest air_time</span></span>
-<span id="cb1-19"><a href="#cb1-19"></a><span class="co">#&gt;      1:            819        11      UA   1545  N14228    EWR  IAH      227</span></span>
-<span id="cb1-20"><a href="#cb1-20"></a><span class="co">#&gt;      2:            830        20      UA   1714  N24211    LGA  IAH      227</span></span>
-<span id="cb1-21"><a href="#cb1-21"></a><span class="co">#&gt;      3:            850        33      AA   1141  N619AA    JFK  MIA      160</span></span>
-<span id="cb1-22"><a href="#cb1-22"></a><span class="co">#&gt;      4:           1022       -18      B6    725  N804JB    JFK  BQN      183</span></span>
-<span id="cb1-23"><a href="#cb1-23"></a><span class="co">#&gt;      5:            837       -25      DL    461  N668DN    LGA  ATL      116</span></span>
-<span id="cb1-24"><a href="#cb1-24"></a><span class="co">#&gt;     ---                                                                     </span></span>
-<span id="cb1-25"><a href="#cb1-25"></a><span class="co">#&gt; 336772:           1634        NA      9E   3393    &lt;NA&gt;    JFK  DCA       NA</span></span>
-<span id="cb1-26"><a href="#cb1-26"></a><span class="co">#&gt; 336773:           2312        NA      9E   3525    &lt;NA&gt;    LGA  SYR       NA</span></span>
-<span id="cb1-27"><a href="#cb1-27"></a><span class="co">#&gt; 336774:           1330        NA      MQ   3461  N535MQ    LGA  BNA       NA</span></span>
-<span id="cb1-28"><a href="#cb1-28"></a><span class="co">#&gt; 336775:           1344        NA      MQ   3572  N511MQ    LGA  CLE       NA</span></span>
-<span id="cb1-29"><a href="#cb1-29"></a><span class="co">#&gt; 336776:           1020        NA      MQ   3531  N839MQ    LGA  RDU       NA</span></span>
-<span id="cb1-30"><a href="#cb1-30"></a><span class="co">#&gt;         distance hour minute           time_hour</span></span>
-<span id="cb1-31"><a href="#cb1-31"></a><span class="co">#&gt;      1:     1400    5     15 2013-01-01 05:00:00</span></span>
-<span id="cb1-32"><a href="#cb1-32"></a><span class="co">#&gt;      2:     1416    5     29 2013-01-01 05:00:00</span></span>
-<span id="cb1-33"><a href="#cb1-33"></a><span class="co">#&gt;      3:     1089    5     40 2013-01-01 05:00:00</span></span>
-<span id="cb1-34"><a href="#cb1-34"></a><span class="co">#&gt;      4:     1576    5     45 2013-01-01 05:00:00</span></span>
-<span id="cb1-35"><a href="#cb1-35"></a><span class="co">#&gt;      5:      762    6      0 2013-01-01 06:00:00</span></span>
-<span id="cb1-36"><a href="#cb1-36"></a><span class="co">#&gt;     ---                                         </span></span>
-<span id="cb1-37"><a href="#cb1-37"></a><span class="co">#&gt; 336772:      213   14     55 2013-09-30 14:00:00</span></span>
-<span id="cb1-38"><a href="#cb1-38"></a><span class="co">#&gt; 336773:      198   22      0 2013-09-30 22:00:00</span></span>
-<span id="cb1-39"><a href="#cb1-39"></a><span class="co">#&gt; 336774:      764   12     10 2013-09-30 12:00:00</span></span>
-<span id="cb1-40"><a href="#cb1-40"></a><span class="co">#&gt; 336775:      419   11     59 2013-09-30 11:00:00</span></span>
-<span id="cb1-41"><a href="#cb1-41"></a><span class="co">#&gt; 336776:      431    8     40 2013-09-30 08:00:00</span></span></code></pre></div>
-<p>Creating a <code>prt</code> object consisting of 2 partitions can for example be done as</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>flights &lt;-<span class="st"> </span><span class="kw">as_prt</span>(dat, <span class="dt">n_chunks =</span> 2L, <span class="dt">dir =</span> <span class="kw">tempfile</span>(<span class="dt">tmpdir =</span> tmp))</span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">print</span>(flights)</span>
-<span id="cb2-3"><a href="#cb2-3"></a><span class="co">#&gt; # A prt:        336,776 × 19</span></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="co">#&gt; # Partitioning: [168,388, 168,388] rows</span></span>
-<span id="cb2-5"><a href="#cb2-5"></a><span class="co">#&gt;          year month   day dep_time sched_dep_time dep_delay arr_time</span></span>
-<span id="cb2-6"><a href="#cb2-6"></a><span class="co">#&gt;         &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;</span></span>
-<span id="cb2-7"><a href="#cb2-7"></a><span class="co">#&gt;       1  2013     1     1      517            515         2      830</span></span>
-<span id="cb2-8"><a href="#cb2-8"></a><span class="co">#&gt;       2  2013     1     1      533            529         4      850</span></span>
-<span id="cb2-9"><a href="#cb2-9"></a><span class="co">#&gt;       3  2013     1     1      542            540         2      923</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a><span class="co">#&gt;       4  2013     1     1      544            545        -1     1004</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a><span class="co">#&gt;       5  2013     1     1      554            600        -6      812</span></span>
-<span id="cb2-12"><a href="#cb2-12"></a><span class="co">#&gt;       …</span></span>
-<span id="cb2-13"><a href="#cb2-13"></a><span class="co">#&gt; 336,772  2013     9    30       NA           1455        NA       NA</span></span>
-<span id="cb2-14"><a href="#cb2-14"></a><span class="co">#&gt; 336,773  2013     9    30       NA           2200        NA       NA</span></span>
-<span id="cb2-15"><a href="#cb2-15"></a><span class="co">#&gt; 336,774  2013     9    30       NA           1210        NA       NA</span></span>
-<span id="cb2-16"><a href="#cb2-16"></a><span class="co">#&gt; 336,775  2013     9    30       NA           1159        NA       NA</span></span>
-<span id="cb2-17"><a href="#cb2-17"></a><span class="co">#&gt; 336,776  2013     9    30       NA            840        NA       NA</span></span>
-<span id="cb2-18"><a href="#cb2-18"></a><span class="co">#&gt; # … with 336,766 more rows, and 12 more variables: sched_arr_time &lt;int&gt;,</span></span>
-<span id="cb2-19"><a href="#cb2-19"></a><span class="co">#&gt; #   arr_delay &lt;dbl&gt;, carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;,</span></span>
-<span id="cb2-20"><a href="#cb2-20"></a><span class="co">#&gt; #   dest &lt;chr&gt;, air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;,</span></span>
-<span id="cb2-21"><a href="#cb2-21"></a><span class="co">#&gt; #   time_hour &lt;dttm&gt;</span></span></code></pre></div>
-<p>This simply splits rows of <code>dat</code> into 2 equally sized groups, preserving the original row ordering and writes each group to its own <code>fst</code> file. Depending on the types of queries that are most frequently run against the data, this naive partitioning might not be optimal. While <code>fst</code> does provide random row access, row selection is only possible via index ranges. Consequently, for each partition all rows that fall into the range between the minimum and the maximum required index will be read into memory and superfluous rows are discarded. If for example the data were to be most frequently accessed by airline, the resulting data loads would be more efficient if the data was already sorted by carrier codes.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>dat &lt;-<span class="st"> </span>data.table<span class="op">::</span><span class="kw">setorderv</span>(dat, <span class="st">&quot;carrier&quot;</span>)</span>
-<span id="cb3-2"><a href="#cb3-2"></a>grp &lt;-<span class="st"> </span><span class="kw">cumsum</span>(<span class="kw">table</span>(dat<span class="op">$</span>carrier)) <span class="op">/</span><span class="st"> </span><span class="kw">nrow</span>(dat) <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.5</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>dat &lt;-<span class="st"> </span><span class="kw">split</span>(dat, grp[dat<span class="op">$</span>carrier])</span>
-<span id="cb3-4"><a href="#cb3-4"></a></span>
-<span id="cb3-5"><a href="#cb3-5"></a>by_carrier &lt;-<span class="st"> </span><span class="kw">as_prt</span>(dat, <span class="dt">dir =</span> <span class="kw">tempfile</span>(<span class="dt">tmpdir =</span> tmp))</span>
-<span id="cb3-6"><a href="#cb3-6"></a>by_carrier</span>
-<span id="cb3-7"><a href="#cb3-7"></a><span class="co">#&gt; # A prt:        336,776 × 19</span></span>
-<span id="cb3-8"><a href="#cb3-8"></a><span class="co">#&gt; # Partitioning: [182,128, 154,648] rows</span></span>
-<span id="cb3-9"><a href="#cb3-9"></a><span class="co">#&gt;          year month   day dep_time sched_dep_time dep_delay arr_time</span></span>
-<span id="cb3-10"><a href="#cb3-10"></a><span class="co">#&gt;         &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;</span></span>
-<span id="cb3-11"><a href="#cb3-11"></a><span class="co">#&gt;       1  2013     1     1      557            600        -3      709</span></span>
-<span id="cb3-12"><a href="#cb3-12"></a><span class="co">#&gt;       2  2013     1     1      624            630        -6      909</span></span>
-<span id="cb3-13"><a href="#cb3-13"></a><span class="co">#&gt;       3  2013     1     1      632            608        24      740</span></span>
-<span id="cb3-14"><a href="#cb3-14"></a><span class="co">#&gt;       4  2013     1     1      809            815        -6     1043</span></span>
-<span id="cb3-15"><a href="#cb3-15"></a><span class="co">#&gt;       5  2013     1     1      811            815        -4     1006</span></span>
-<span id="cb3-16"><a href="#cb3-16"></a><span class="co">#&gt;       …</span></span>
-<span id="cb3-17"><a href="#cb3-17"></a><span class="co">#&gt; 336,772  2013     9    30     1955           2000        -5     2219</span></span>
-<span id="cb3-18"><a href="#cb3-18"></a><span class="co">#&gt; 336,773  2013     9    30     1956           1825        91     2208</span></span>
-<span id="cb3-19"><a href="#cb3-19"></a><span class="co">#&gt; 336,774  2013     9    30     2041           2045        -4     2147</span></span>
-<span id="cb3-20"><a href="#cb3-20"></a><span class="co">#&gt; 336,775  2013     9    30     2050           2045         5       20</span></span>
-<span id="cb3-21"><a href="#cb3-21"></a><span class="co">#&gt; 336,776  2013     9    30     2121           2100        21     2349</span></span>
-<span id="cb3-22"><a href="#cb3-22"></a><span class="co">#&gt; # … with 336,766 more rows, and 12 more variables: sched_arr_time &lt;int&gt;,</span></span>
-<span id="cb3-23"><a href="#cb3-23"></a><span class="co">#&gt; #   arr_delay &lt;dbl&gt;, carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;,</span></span>
-<span id="cb3-24"><a href="#cb3-24"></a><span class="co">#&gt; #   dest &lt;chr&gt;, air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;,</span></span>
-<span id="cb3-25"><a href="#cb3-25"></a><span class="co">#&gt; #   time_hour &lt;dttm&gt;</span></span></code></pre></div>
-<p>The behavior of subsetting operations on <code>prt</code> objects is modeled after that of <a href="https://tibble.tidyverse.org"><code>tibble</code></a> objects. Columns can be extracted using <code>[[</code>, <code>$</code> (with partial matching being disallowed), or by selecting a single column with <code>[</code> and passing <code>TRUE</code> as <code>drop</code> argument.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">str</span>(flights[[1L]])</span>
-<span id="cb4-2"><a href="#cb4-2"></a><span class="co">#&gt;  int [1:336776] 2013 2013 2013 2013 2013 2013 2013 2013 2013 2013 ...</span></span>
-<span id="cb4-3"><a href="#cb4-3"></a><span class="kw">identical</span>(flights[[<span class="st">&quot;year&quot;</span>]], flights<span class="op">$</span>year)</span>
-<span id="cb4-4"><a href="#cb4-4"></a><span class="co">#&gt; [1] TRUE</span></span>
-<span id="cb4-5"><a href="#cb4-5"></a><span class="kw">identical</span>(flights[[<span class="st">&quot;year&quot;</span>]], flights[, <span class="st">&quot;year&quot;</span>, <span class="dt">drop =</span> <span class="ot">TRUE</span>])</span>
-<span id="cb4-6"><a href="#cb4-6"></a><span class="co">#&gt; [1] TRUE</span></span>
-<span id="cb4-7"><a href="#cb4-7"></a><span class="kw">str</span>(flights<span class="op">$</span>yea)</span>
-<span id="cb4-8"><a href="#cb4-8"></a><span class="co">#&gt; Warning: Unknown or uninitialised column: `yea`.</span></span>
-<span id="cb4-9"><a href="#cb4-9"></a><span class="co">#&gt;  NULL</span></span></code></pre></div>
-<p>If the object resulting from the subsetting operation is two-dimensional, it is returned as <code>data.table</code> object. Apart form this distinction, again the intent is to replicate <code>tibble</code> behavior. One way in which <code>tibble</code> and <code>data.frame</code> do not behave in the same way is in default coercion to lower dimensions. The default value for the <code>drop</code> argument of <code>[.data.frame</code> is <code>FALSE</code> if only one row is returned but changes to <code>TRUE</code> where the result is a single column, while it is always <code>FALSE</code> for <code>tibble</code>s. A difference in behavior between <code>data.table</code> and <code>tibble</code> (any by extension <code>prt</code>) is a missing <code>j</code> argument: in the <code>tibble</code> (and in the <code>data.frame</code>) implementation, the <code>i</code> argument is then interpreted as column specification, whereas for <code>data.frame</code>s, <code>i</code> remains a row selection.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>datasets<span class="op">::</span>mtcars[, <span class="st">&quot;mpg&quot;</span>]</span>
-<span id="cb5-2"><a href="#cb5-2"></a><span class="co">#&gt;  [1] 21.0 21.0 22.8 21.4 18.7 18.1 14.3 24.4 22.8 19.2 17.8 16.4 17.3 15.2 10.4</span></span>
-<span id="cb5-3"><a href="#cb5-3"></a><span class="co">#&gt; [16] 10.4 14.7 32.4 30.4 33.9 21.5 15.5 15.2 13.3 19.2 27.3 26.0 30.4 15.8 19.7</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a><span class="co">#&gt; [31] 15.0 21.4</span></span>
-<span id="cb5-5"><a href="#cb5-5"></a>flights[, <span class="st">&quot;dep_time&quot;</span>]</span>
-<span id="cb5-6"><a href="#cb5-6"></a><span class="co">#&gt;         dep_time</span></span>
-<span id="cb5-7"><a href="#cb5-7"></a><span class="co">#&gt;      1:      517</span></span>
-<span id="cb5-8"><a href="#cb5-8"></a><span class="co">#&gt;      2:      533</span></span>
-<span id="cb5-9"><a href="#cb5-9"></a><span class="co">#&gt;      3:      542</span></span>
-<span id="cb5-10"><a href="#cb5-10"></a><span class="co">#&gt;      4:      544</span></span>
-<span id="cb5-11"><a href="#cb5-11"></a><span class="co">#&gt;      5:      554</span></span>
-<span id="cb5-12"><a href="#cb5-12"></a><span class="co">#&gt;     ---         </span></span>
-<span id="cb5-13"><a href="#cb5-13"></a><span class="co">#&gt; 336772:       NA</span></span>
-<span id="cb5-14"><a href="#cb5-14"></a><span class="co">#&gt; 336773:       NA</span></span>
-<span id="cb5-15"><a href="#cb5-15"></a><span class="co">#&gt; 336774:       NA</span></span>
-<span id="cb5-16"><a href="#cb5-16"></a><span class="co">#&gt; 336775:       NA</span></span>
-<span id="cb5-17"><a href="#cb5-17"></a><span class="co">#&gt; 336776:       NA</span></span>
-<span id="cb5-18"><a href="#cb5-18"></a></span>
-<span id="cb5-19"><a href="#cb5-19"></a>jan_dt &lt;-<span class="st"> </span>flights[flights<span class="op">$</span>month <span class="op">==</span><span class="st"> </span>1L, ]</span>
-<span id="cb5-20"><a href="#cb5-20"></a></span>
-<span id="cb5-21"><a href="#cb5-21"></a>jan_dt[1L]</span>
-<span id="cb5-22"><a href="#cb5-22"></a><span class="co">#&gt;    year month day dep_time sched_dep_time dep_delay arr_time sched_arr_time</span></span>
-<span id="cb5-23"><a href="#cb5-23"></a><span class="co">#&gt; 1: 2013     1   1      517            515         2      830            819</span></span>
-<span id="cb5-24"><a href="#cb5-24"></a><span class="co">#&gt;    arr_delay carrier flight tailnum origin dest air_time distance hour minute</span></span>
-<span id="cb5-25"><a href="#cb5-25"></a><span class="co">#&gt; 1:        11      UA   1545  N14228    EWR  IAH      227     1400    5     15</span></span>
-<span id="cb5-26"><a href="#cb5-26"></a><span class="co">#&gt;              time_hour</span></span>
-<span id="cb5-27"><a href="#cb5-27"></a><span class="co">#&gt; 1: 2013-01-01 05:00:00</span></span>
-<span id="cb5-28"><a href="#cb5-28"></a>flights[1L]</span>
-<span id="cb5-29"><a href="#cb5-29"></a><span class="co">#&gt;         year</span></span>
-<span id="cb5-30"><a href="#cb5-30"></a><span class="co">#&gt;      1: 2013</span></span>
-<span id="cb5-31"><a href="#cb5-31"></a><span class="co">#&gt;      2: 2013</span></span>
-<span id="cb5-32"><a href="#cb5-32"></a><span class="co">#&gt;      3: 2013</span></span>
-<span id="cb5-33"><a href="#cb5-33"></a><span class="co">#&gt;      4: 2013</span></span>
-<span id="cb5-34"><a href="#cb5-34"></a><span class="co">#&gt;      5: 2013</span></span>
-<span id="cb5-35"><a href="#cb5-35"></a><span class="co">#&gt;     ---     </span></span>
-<span id="cb5-36"><a href="#cb5-36"></a><span class="co">#&gt; 336772: 2013</span></span>
-<span id="cb5-37"><a href="#cb5-37"></a><span class="co">#&gt; 336773: 2013</span></span>
-<span id="cb5-38"><a href="#cb5-38"></a><span class="co">#&gt; 336774: 2013</span></span>
-<span id="cb5-39"><a href="#cb5-39"></a><span class="co">#&gt; 336775: 2013</span></span>
-<span id="cb5-40"><a href="#cb5-40"></a><span class="co">#&gt; 336776: 2013</span></span></code></pre></div>
-<p>Deviation of <code>prt</code> subsetting behavior from that of <code>tibble</code> objects is most likely unintentional and bug reports are much appreciated as github <a href="https://github.com/nbenn/prt/issues/new">issues</a>.</p>
-<p>The main feature of <code>prt</code> is the ability to load only a subset of a much larger tabular dataset and a useful function for selecting rows and columns of a table in a concise manner is the base R S3 generic function <code>subset()</code>. As such, a <code>prt</code> specific method is provided by this package. Using this functionality, above query for selecting all flights in January can be written as follows</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">identical</span>(jan_dt, <span class="kw">subset</span>(flights, month <span class="op">==</span><span class="st"> </span>1L))</span>
-<span id="cb6-2"><a href="#cb6-2"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
-<p>To illustrate the importance of row-ordering consider the following small benchmark example: we subset on the <code>carrier</code> column, selecting only American Airlines flights. In one <code>prt</code> object, rows are ordered by carrier whereas in the other they are not, which will cause rows that are interleaved with those corresponding to <code>AA</code> flights to be read and discarded.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>bench<span class="op">::</span><span class="kw">mark</span>(</span>
-<span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">subset</span>(flights, carrier <span class="op">==</span><span class="st"> &quot;AA&quot;</span>),</span>
-<span id="cb7-3"><a href="#cb7-3"></a>  <span class="kw">subset</span>(by_carrier, carrier <span class="op">==</span><span class="st"> &quot;AA&quot;</span>)</span>
-<span id="cb7-4"><a href="#cb7-4"></a>)</span>
-<span id="cb7-5"><a href="#cb7-5"></a><span class="co">#&gt; # A tibble: 2 x 6</span></span>
-<span id="cb7-6"><a href="#cb7-6"></a><span class="co">#&gt;   expression                               min   median `itr/sec` mem_alloc</span></span>
-<span id="cb7-7"><a href="#cb7-7"></a><span class="co">#&gt;   &lt;bch:expr&gt;                          &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt; &lt;bch:byt&gt;</span></span>
-<span id="cb7-8"><a href="#cb7-8"></a><span class="co">#&gt; 1 subset(flights, carrier == &quot;AA&quot;)     118.2ms  118.2ms      8.46    56.5MB</span></span>
-<span id="cb7-9"><a href="#cb7-9"></a><span class="co">#&gt; 2 subset(by_carrier, carrier == &quot;AA&quot;)   32.7ms   37.1ms     23.8     17.8MB</span></span>
-<span id="cb7-10"><a href="#cb7-10"></a><span class="co">#&gt; # … with 1 more variable: gc/sec &lt;dbl&gt;</span></span></code></pre></div>
-<p>A common problem with non-standard evaluation (NSE) is potential ambiguity. Symbols in expressions passed as <code>subset</code> and <code>select</code> arguments are first resolved in the context of the data, followed by the environment the expression was created in (the <a href="https://rlang.r-lib.org/reference/nse-defuse.html">quosure</a> environment). Expressions are evaluated using <code>rlang::eval_tidy()</code>, which makes possible the distinction between symbols referring to the data mask from those referring to the expression environment. This can either be achieved using the <code>.data</code> and <code>.env</code> pronouns or by <a href="https://rlang.r-lib.org/reference/nse-force.html">forcing parts of the expression</a>.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>month &lt;-<span class="st"> </span>1L</span>
-<span id="cb8-2"><a href="#cb8-2"></a><span class="kw">subset</span>(flights, month <span class="op">==</span><span class="st"> </span>month, 1L<span class="op">:</span>7L)</span>
-<span id="cb8-3"><a href="#cb8-3"></a><span class="co">#&gt;         year month day dep_time sched_dep_time dep_delay arr_time</span></span>
-<span id="cb8-4"><a href="#cb8-4"></a><span class="co">#&gt;      1: 2013     1   1      517            515         2      830</span></span>
-<span id="cb8-5"><a href="#cb8-5"></a><span class="co">#&gt;      2: 2013     1   1      533            529         4      850</span></span>
-<span id="cb8-6"><a href="#cb8-6"></a><span class="co">#&gt;      3: 2013     1   1      542            540         2      923</span></span>
-<span id="cb8-7"><a href="#cb8-7"></a><span class="co">#&gt;      4: 2013     1   1      544            545        -1     1004</span></span>
-<span id="cb8-8"><a href="#cb8-8"></a><span class="co">#&gt;      5: 2013     1   1      554            600        -6      812</span></span>
-<span id="cb8-9"><a href="#cb8-9"></a><span class="co">#&gt;     ---                                                          </span></span>
-<span id="cb8-10"><a href="#cb8-10"></a><span class="co">#&gt; 336772: 2013     9  30       NA           1455        NA       NA</span></span>
-<span id="cb8-11"><a href="#cb8-11"></a><span class="co">#&gt; 336773: 2013     9  30       NA           2200        NA       NA</span></span>
-<span id="cb8-12"><a href="#cb8-12"></a><span class="co">#&gt; 336774: 2013     9  30       NA           1210        NA       NA</span></span>
-<span id="cb8-13"><a href="#cb8-13"></a><span class="co">#&gt; 336775: 2013     9  30       NA           1159        NA       NA</span></span>
-<span id="cb8-14"><a href="#cb8-14"></a><span class="co">#&gt; 336776: 2013     9  30       NA            840        NA       NA</span></span>
-<span id="cb8-15"><a href="#cb8-15"></a></span>
-<span id="cb8-16"><a href="#cb8-16"></a><span class="kw">identical</span>(jan_dt, <span class="kw">subset</span>(flights, month <span class="op">==</span><span class="st"> </span><span class="op">!!</span>month))</span>
-<span id="cb8-17"><a href="#cb8-17"></a><span class="co">#&gt; [1] TRUE</span></span>
-<span id="cb8-18"><a href="#cb8-18"></a><span class="kw">identical</span>(jan_dt, <span class="kw">subset</span>(flights, .env<span class="op">$</span>month <span class="op">==</span><span class="st"> </span>.data<span class="op">$</span>month))</span>
-<span id="cb8-19"><a href="#cb8-19"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
-<p>While in the above example it is fairly clear what is happening and it should come as no surprise that the symbol <code>month</code> cannot simultaneously refer to a value in the calling environment and the name of a column in the data mask, a more subtle issue is considered in the following example. The environment which takes precedence for evaluating the <code>select</code> argument is a named list of column indices. This makes it possible for example to specify a range of columns as (and makes the behavior of <code>subset()</code> being applied to a <code>prt</code> object consistent with that of a <code>data.frame</code>).</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">subset</span>(flights, <span class="dt">select =</span> year<span class="op">:</span>day)</span>
-<span id="cb9-2"><a href="#cb9-2"></a><span class="co">#&gt;         year month day</span></span>
-<span id="cb9-3"><a href="#cb9-3"></a><span class="co">#&gt;      1: 2013     1   1</span></span>
-<span id="cb9-4"><a href="#cb9-4"></a><span class="co">#&gt;      2: 2013     1   1</span></span>
-<span id="cb9-5"><a href="#cb9-5"></a><span class="co">#&gt;      3: 2013     1   1</span></span>
-<span id="cb9-6"><a href="#cb9-6"></a><span class="co">#&gt;      4: 2013     1   1</span></span>
-<span id="cb9-7"><a href="#cb9-7"></a><span class="co">#&gt;      5: 2013     1   1</span></span>
-<span id="cb9-8"><a href="#cb9-8"></a><span class="co">#&gt;     ---               </span></span>
-<span id="cb9-9"><a href="#cb9-9"></a><span class="co">#&gt; 336772: 2013     9  30</span></span>
-<span id="cb9-10"><a href="#cb9-10"></a><span class="co">#&gt; 336773: 2013     9  30</span></span>
-<span id="cb9-11"><a href="#cb9-11"></a><span class="co">#&gt; 336774: 2013     9  30</span></span>
-<span id="cb9-12"><a href="#cb9-12"></a><span class="co">#&gt; 336775: 2013     9  30</span></span>
-<span id="cb9-13"><a href="#cb9-13"></a><span class="co">#&gt; 336776: 2013     9  30</span></span></code></pre></div>
-<p>Now recall that symbols that cannot be resolved in this data environment will be looked up in the calling environment. Therefore the following effect, while potentially unintuitive, can easily be explained. Again, the <code>.data</code> and <code>.env</code> pronouns can be used to resolve potential issues.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>sched_dep_time &lt;-<span class="st"> &quot;dep_time&quot;</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> sched_dep_time))</span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="co">#&gt; [1] &quot;sched_dep_time&quot;</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a></span>
-<span id="cb10-5"><a href="#cb10-5"></a>actual_dep_time &lt;-<span class="st"> &quot;dep_time&quot;</span></span>
-<span id="cb10-6"><a href="#cb10-6"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> actual_dep_time))</span>
-<span id="cb10-7"><a href="#cb10-7"></a><span class="co">#&gt; [1] &quot;dep_time&quot;</span></span>
-<span id="cb10-8"><a href="#cb10-8"></a></span>
-<span id="cb10-9"><a href="#cb10-9"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> .env<span class="op">$</span>sched_dep_time))</span>
-<span id="cb10-10"><a href="#cb10-10"></a><span class="co">#&gt; [1] &quot;dep_time&quot;</span></span>
-<span id="cb10-11"><a href="#cb10-11"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> .env<span class="op">$</span>actual_dep_time))</span>
-<span id="cb10-12"><a href="#cb10-12"></a><span class="co">#&gt; [1] &quot;dep_time&quot;</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> .data<span class="op">$</span>sched_dep_time))</span>
-<span id="cb11-2"><a href="#cb11-2"></a><span class="co">#&gt; [1] &quot;sched_dep_time&quot;</span></span>
-<span id="cb11-3"><a href="#cb11-3"></a><span class="kw">colnames</span>(<span class="kw">subset</span>(flights, <span class="dt">select =</span> .data<span class="op">$</span>actual_dep_time))</span>
-<span id="cb11-4"><a href="#cb11-4"></a><span class="co">#&gt; Error: Column `actual_dep_time` not found in `.data`</span></span></code></pre></div>
-<p>By default, <code>subset</code> expressions have to be evaluated on the entire dataset at once in order to be consistent with base R <code>subset()</code> for <code>data.frames</code>. Often times this is inefficient and this behavior can be modified using the <code>part_saft</code> argument. Consider the following query which selects all rows where the arrival delay is larger than the mean arrival delay. Obviously an expression like this can yield different results depending on whether it is evaluated on individual partitions or over the entire data. Other queries such as the one above where we threshold on a fixed value, however can safely be evaluated on partitions individually.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>is_true &lt;-<span class="st"> </span><span class="cf">function</span>(x) <span class="op">!</span><span class="kw">is.na</span>(x) <span class="op">&amp;</span><span class="st"> </span>x</span>
-<span id="cb12-2"><a href="#cb12-2"></a>expr &lt;-<span class="st"> </span><span class="kw">quote</span>(<span class="kw">is_true</span>(arr_delay <span class="op">&gt;</span><span class="st"> </span><span class="kw">mean</span>(arr_delay, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)))</span>
-<span id="cb12-3"><a href="#cb12-3"></a><span class="kw">nrow</span>(<span class="kw">subset_quo</span>(flights, expr, <span class="dt">part_safe =</span> <span class="ot">FALSE</span>))</span>
-<span id="cb12-4"><a href="#cb12-4"></a><span class="co">#&gt; [1] 105827</span></span>
-<span id="cb12-5"><a href="#cb12-5"></a><span class="kw">nrow</span>(<span class="kw">subset_quo</span>(flights, expr, <span class="dt">part_safe =</span> <span class="ot">TRUE</span>))</span>
-<span id="cb12-6"><a href="#cb12-6"></a><span class="co">#&gt; [1] 104752</span></span></code></pre></div>
-<p>As an aside, in addition to <code>subset()</code>, which creates quosures from the expressions passed as <code>subset</code> and <code>select</code>, (using <code>rlang::enquo()</code>) the function <code>subset_quo()</code> which operates on already quoted expressions is exported as well. Thanks to the double curly brace forwarding operator introduced in rlang 0.4.0, this escape-hatch mechanism however is of lesser importance.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>col_safe_subset &lt;-<span class="st"> </span><span class="cf">function</span>(x, expr, cols) {</span>
-<span id="cb13-2"><a href="#cb13-2"></a>  <span class="kw">stopifnot</span>(<span class="kw">is_prt</span>(x), <span class="kw">is.character</span>(cols))</span>
-<span id="cb13-3"><a href="#cb13-3"></a>  <span class="kw">subset</span>(x, {{ expr }}, .env<span class="op">$</span>cols)</span>
-<span id="cb13-4"><a href="#cb13-4"></a>}</span>
-<span id="cb13-5"><a href="#cb13-5"></a></span>
-<span id="cb13-6"><a href="#cb13-6"></a>air_time &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;dep_time&quot;</span>, <span class="st">&quot;arr_time&quot;</span>)</span>
-<span id="cb13-7"><a href="#cb13-7"></a><span class="kw">col_safe_subset</span>(flights, month <span class="op">==</span><span class="st"> </span>1L, air_time)</span>
-<span id="cb13-8"><a href="#cb13-8"></a><span class="co">#&gt;        dep_time arr_time</span></span>
-<span id="cb13-9"><a href="#cb13-9"></a><span class="co">#&gt;     1:      517      830</span></span>
-<span id="cb13-10"><a href="#cb13-10"></a><span class="co">#&gt;     2:      533      850</span></span>
-<span id="cb13-11"><a href="#cb13-11"></a><span class="co">#&gt;     3:      542      923</span></span>
-<span id="cb13-12"><a href="#cb13-12"></a><span class="co">#&gt;     4:      544     1004</span></span>
-<span id="cb13-13"><a href="#cb13-13"></a><span class="co">#&gt;     5:      554      812</span></span>
-<span id="cb13-14"><a href="#cb13-14"></a><span class="co">#&gt;    ---                  </span></span>
-<span id="cb13-15"><a href="#cb13-15"></a><span class="co">#&gt; 27000:       NA       NA</span></span>
-<span id="cb13-16"><a href="#cb13-16"></a><span class="co">#&gt; 27001:       NA       NA</span></span>
-<span id="cb13-17"><a href="#cb13-17"></a><span class="co">#&gt; 27002:       NA       NA</span></span>
-<span id="cb13-18"><a href="#cb13-18"></a><span class="co">#&gt; 27003:       NA       NA</span></span>
-<span id="cb13-19"><a href="#cb13-19"></a><span class="co">#&gt; 27004:       NA       NA</span></span></code></pre></div>
-<p>In addition to subsetting, concise and informative printing is another area which effort ha been put into. Inspired by (and liberally borrowing code from) <code>tibble</code>, the <code>print()</code> method of <code>fst</code> objects adds the <code>data.table</code> approach of showing both the first and last <code>n</code> rows of the table in question. This functionality can be used by other classes used to represent tabular data, as the function <code>trunc_dt()</code> driving this is exported. All that is required are implementations of the base S3 generic functions <code>dim()</code>, <code>head()</code>, <code>tail()</code> and of course <code>print()</code>.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>new_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(...) <span class="kw">structure</span>(<span class="kw">list</span>(...), <span class="dt">class =</span> <span class="st">&quot;my_tbl&quot;</span>)</span>
-<span id="cb14-2"><a href="#cb14-2"></a></span>
-<span id="cb14-3"><a href="#cb14-3"></a>dim.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x) {</span>
-<span id="cb14-4"><a href="#cb14-4"></a>  rows &lt;-<span class="st"> </span><span class="kw">unique</span>(<span class="kw">lengths</span>(x))</span>
-<span id="cb14-5"><a href="#cb14-5"></a>  <span class="kw">stopifnot</span>(<span class="kw">length</span>(rows) <span class="op">==</span><span class="st"> </span>1L)</span>
-<span id="cb14-6"><a href="#cb14-6"></a>  <span class="kw">c</span>(rows, <span class="kw">length</span>(x))</span>
-<span id="cb14-7"><a href="#cb14-7"></a>}</span>
-<span id="cb14-8"><a href="#cb14-8"></a>head.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">n =</span> 6L, ...) {</span>
-<span id="cb14-9"><a href="#cb14-9"></a>  <span class="kw">as.data.frame</span>(<span class="kw">lapply</span>(x, <span class="st">`</span><span class="dt">[</span><span class="st">`</span>, <span class="kw">seq_len</span>(n)))</span>
-<span id="cb14-10"><a href="#cb14-10"></a>}</span>
-<span id="cb14-11"><a href="#cb14-11"></a>tail.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">n =</span> 6L, ...) {</span>
-<span id="cb14-12"><a href="#cb14-12"></a>  <span class="kw">as.data.frame</span>(<span class="kw">lapply</span>(x, <span class="st">`</span><span class="dt">[</span><span class="st">`</span>, <span class="kw">seq</span>(<span class="kw">nrow</span>(x) <span class="op">-</span><span class="st"> </span>n <span class="op">+</span><span class="st"> </span>1L, <span class="kw">nrow</span>(x))))</span>
-<span id="cb14-13"><a href="#cb14-13"></a>}</span>
-<span id="cb14-14"><a href="#cb14-14"></a>print.my_tbl &lt;-<span class="st"> </span><span class="cf">function</span>(x, ..., <span class="dt">n =</span> <span class="ot">NULL</span>, <span class="dt">width =</span> <span class="ot">NULL</span>, <span class="dt">n_extra =</span> <span class="ot">NULL</span>) {</span>
-<span id="cb14-15"><a href="#cb14-15"></a>  out &lt;-<span class="st"> </span><span class="kw">format</span>(<span class="kw">trunc_dt</span>(x, <span class="dt">n =</span> n, <span class="dt">width =</span> width, <span class="dt">n_extra =</span> n_extra))</span>
-<span id="cb14-16"><a href="#cb14-16"></a>  <span class="kw">cat</span>(<span class="kw">paste0</span>(out, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>), <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)</span>
-<span id="cb14-17"><a href="#cb14-17"></a>  <span class="kw">invisible</span>(x)</span>
-<span id="cb14-18"><a href="#cb14-18"></a>}</span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">new_tbl</span>(<span class="dt">a =</span> letters, <span class="dt">b =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">26</span>)</span>
-<span id="cb15-2"><a href="#cb15-2"></a><span class="co">#&gt; # Description: my_tbl[,2]</span></span>
-<span id="cb15-3"><a href="#cb15-3"></a><span class="co">#&gt;    a         b</span></span>
-<span id="cb15-4"><a href="#cb15-4"></a><span class="co">#&gt;    &lt;chr&gt; &lt;int&gt;</span></span>
-<span id="cb15-5"><a href="#cb15-5"></a><span class="co">#&gt;  1 a         1</span></span>
-<span id="cb15-6"><a href="#cb15-6"></a><span class="co">#&gt;  2 b         2</span></span>
-<span id="cb15-7"><a href="#cb15-7"></a><span class="co">#&gt;  3 c         3</span></span>
-<span id="cb15-8"><a href="#cb15-8"></a><span class="co">#&gt;  4 d         4</span></span>
-<span id="cb15-9"><a href="#cb15-9"></a><span class="co">#&gt;  5 e         5</span></span>
-<span id="cb15-10"><a href="#cb15-10"></a><span class="co">#&gt;  …  </span></span>
-<span id="cb15-11"><a href="#cb15-11"></a><span class="co">#&gt; 22 v        22</span></span>
-<span id="cb15-12"><a href="#cb15-12"></a><span class="co">#&gt; 23 w        23</span></span>
-<span id="cb15-13"><a href="#cb15-13"></a><span class="co">#&gt; 24 x        24</span></span>
-<span id="cb15-14"><a href="#cb15-14"></a><span class="co">#&gt; 25 y        25</span></span>
-<span id="cb15-15"><a href="#cb15-15"></a><span class="co">#&gt; 26 z        26</span></span>
-<span id="cb15-16"><a href="#cb15-16"></a><span class="co">#&gt; # … with 16 more rows</span></span></code></pre></div>
-<p>Similarly, the function <code>glimpse_dt()</code> which can be used to implement a class-specific function for the <code>tibble</code> S3 generic <code>tibble::glimpse()</code>. In order to customize the text description of the object a class-specific function for the <code>tibble</code> S3 generic <code>tibble::tbl_sum()</code> can be provided.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">unlink</span>(tmp, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<p>The <code>prt</code> object introduced by this package is intended to
+represent tabular data stored as one or more <a href="https://www.fstpackage.org"><code>fst</code></a> files. This is in
+similar spirit as <a href="https://diskframe.com"><code>disk.frame</code></a>, but is much
+less ambitious in scope and therefore much simpler in implementation.
+While the <code>disk.frame</code> package attempts to provide a <a href="https://dplyr.tidyverse.org"><code>dplyr</code></a> compliant API
+and offers parallel computation via the <a href="https://cran.r-project.org/package=future"><code>future</code></a>
+package, the intended use-case for <code>prt</code> objects is the
+situation where only a (small) subset of rows of the (large) tabular
+dataset are of interest for analysis at once. This subset can be
+specified using the base generic function <code>subset()</code> and the
+selected data is read into memory as a <code>data.table</code> object.
+Subsequent data operations and analysis is then preformed on this
+<code>data.table</code> representation. For this reason, partition-level
+parallelism is not in-scope for <code>prt</code> as <code>fst</code>
+already provides an efficient shared memory parallel implementation for
+decompression. Furthermore the much more complex multi-function
+non-standard evaluation API provided by <code>dplyr</code> was forgone
+in favor of the very simple one-function approach presented by the base
+R S3 generic function <code>subset()</code>.</p>
+<p>For the purpose of illustration of some <code>prt</code> features and
+particularities, we instantiate a dataset as <code>data.table</code>
+object and create a temporary directory which will contain the
+file-based data back ends.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="ot">&lt;-</span> <span class="fu">tempfile</span>()</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>((tmp))</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">setDT</span>(nycflights13<span class="sc">::</span>flights)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(dat)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         year month day dep_time sched_dep_time dep_delay arr_time</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      1: 2013     1   1      517            515         2      830</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      2: 2013     1   1      533            529         4      850</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      3: 2013     1   1      542            540         2      923</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      4: 2013     1   1      544            545        -1     1004</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      5: 2013     1   1      554            600        -6      812</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     ---                                                          </span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336772: 2013     9  30       NA           1455        NA       NA</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336773: 2013     9  30       NA           2200        NA       NA</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336774: 2013     9  30       NA           1210        NA       NA</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336775: 2013     9  30       NA           1159        NA       NA</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336776: 2013     9  30       NA            840        NA       NA</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         sched_arr_time arr_delay carrier flight tailnum origin dest air_time</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      1:            819        11      UA   1545  N14228    EWR  IAH      227</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      2:            830        20      UA   1714  N24211    LGA  IAH      227</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      3:            850        33      AA   1141  N619AA    JFK  MIA      160</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      4:           1022       -18      B6    725  N804JB    JFK  BQN      183</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      5:            837       -25      DL    461  N668DN    LGA  ATL      116</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     ---                                                                     </span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336772:           1634        NA      9E   3393    &lt;NA&gt;    JFK  DCA       NA</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336773:           2312        NA      9E   3525    &lt;NA&gt;    LGA  SYR       NA</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336774:           1330        NA      MQ   3461  N535MQ    LGA  BNA       NA</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336775:           1344        NA      MQ   3572  N511MQ    LGA  CLE       NA</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336776:           1020        NA      MQ   3531  N839MQ    LGA  RDU       NA</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         distance hour minute           time_hour</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      1:     1400    5     15 2013-01-01 05:00:00</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      2:     1416    5     29 2013-01-01 05:00:00</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      3:     1089    5     40 2013-01-01 05:00:00</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      4:     1576    5     45 2013-01-01 05:00:00</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      5:      762    6      0 2013-01-01 06:00:00</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     ---                                         </span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336772:      213   14     55 2013-09-30 14:00:00</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336773:      198   22      0 2013-09-30 22:00:00</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336774:      764   12     10 2013-09-30 12:00:00</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336775:      419   11     59 2013-09-30 11:00:00</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336776:      431    8     40 2013-09-30 08:00:00</span></span></code></pre></div>
+<p>Creating a <code>prt</code> object consisting of 2 partitions can for
+example be done as</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>flights <span class="ot">&lt;-</span> <span class="fu">as_prt</span>(dat, <span class="at">n_chunks =</span> 2L, <span class="at">dir =</span> <span class="fu">tempfile</span>(<span class="at">tmpdir =</span> tmp))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(flights)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A prt:        336,776 × 19</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Partitioning: [168,388, 168,388] rows</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;          year month   day dep_time sched_dep_time dep_delay arr_time</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       1  2013     1     1      517            515         2      830</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       2  2013     1     1      533            529         4      850</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       3  2013     1     1      542            540         2      923</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       4  2013     1     1      544            545        -1     1004</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       5  2013     1     1      554            600        -6      812</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       …</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336,772  2013     9    30       NA           1455        NA       NA</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336,773  2013     9    30       NA           2200        NA       NA</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336,774  2013     9    30       NA           1210        NA       NA</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336,775  2013     9    30       NA           1159        NA       NA</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336,776  2013     9    30       NA            840        NA       NA</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 336,766 more rows, and 12 more variables: sched_arr_time &lt;int&gt;,</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   arr_delay &lt;dbl&gt;, carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;,</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   dest &lt;chr&gt;, air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;,</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   time_hour &lt;dttm&gt;</span></span></code></pre></div>
+<p>This simply splits rows of <code>dat</code> into 2 equally sized
+groups, preserving the original row ordering and writes each group to
+its own <code>fst</code> file. Depending on the types of queries that
+are most frequently run against the data, this naive partitioning might
+not be optimal. While <code>fst</code> does provide random row access,
+row selection is only possible via index ranges. Consequently, for each
+partition all rows that fall into the range between the minimum and the
+maximum required index will be read into memory and superfluous rows are
+discarded. If for example the data were to be most frequently accessed
+by airline, the resulting data loads would be more efficient if the data
+was already sorted by carrier codes.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">setorderv</span>(dat, <span class="st">&quot;carrier&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>grp <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(<span class="fu">table</span>(dat<span class="sc">$</span>carrier)) <span class="sc">/</span> <span class="fu">nrow</span>(dat) <span class="sc">&lt;</span> <span class="fl">0.5</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">split</span>(dat, grp[dat<span class="sc">$</span>carrier])</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>by_carrier <span class="ot">&lt;-</span> <span class="fu">as_prt</span>(dat, <span class="at">dir =</span> <span class="fu">tempfile</span>(<span class="at">tmpdir =</span> tmp))</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>by_carrier</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A prt:        336,776 × 19</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Partitioning: [182,128, 154,648] rows</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;          year month   day dep_time sched_dep_time dep_delay arr_time</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       1  2013     1     1      557            600        -3      709</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       2  2013     1     1      624            630        -6      909</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       3  2013     1     1      632            608        24      740</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       4  2013     1     1      809            815        -6     1043</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       5  2013     1     1      811            815        -4     1006</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       …</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336,772  2013     9    30     1955           2000        -5     2219</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336,773  2013     9    30     1956           1825        91     2208</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336,774  2013     9    30     2041           2045        -4     2147</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336,775  2013     9    30     2050           2045         5       20</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336,776  2013     9    30     2121           2100        21     2349</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 336,766 more rows, and 12 more variables: sched_arr_time &lt;int&gt;,</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   arr_delay &lt;dbl&gt;, carrier &lt;chr&gt;, flight &lt;int&gt;, tailnum &lt;chr&gt;, origin &lt;chr&gt;,</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   dest &lt;chr&gt;, air_time &lt;dbl&gt;, distance &lt;dbl&gt;, hour &lt;dbl&gt;, minute &lt;dbl&gt;,</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   time_hour &lt;dttm&gt;</span></span></code></pre></div>
+<p>The behavior of subsetting operations on <code>prt</code> objects is
+modeled after that of <a href="https://tibble.tidyverse.org"><code>tibble</code></a> objects.
+Columns can be extracted using <code>[[</code>, <code>$</code> (with
+partial matching being disallowed), or by selecting a single column with
+<code>[</code> and passing <code>TRUE</code> as <code>drop</code>
+argument.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(flights[[1L]])</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  int [1:336776] 2013 2013 2013 2013 2013 2013 2013 2013 2013 2013 ...</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">identical</span>(flights[[<span class="st">&quot;year&quot;</span>]], flights<span class="sc">$</span>year)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">identical</span>(flights[[<span class="st">&quot;year&quot;</span>]], flights[, <span class="st">&quot;year&quot;</span>, <span class="at">drop =</span> <span class="cn">TRUE</span>])</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(flights<span class="sc">$</span>yea)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning: Unknown or uninitialised column: `yea`.</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  NULL</span></span></code></pre></div>
+<p>If the object resulting from the subsetting operation is
+two-dimensional, it is returned as <code>data.table</code> object. Apart
+form this distinction, again the intent is to replicate
+<code>tibble</code> behavior. One way in which <code>tibble</code> and
+<code>data.frame</code> do not behave in the same way is in default
+coercion to lower dimensions. The default value for the
+<code>drop</code> argument of <code>[.data.frame</code> is
+<code>FALSE</code> if only one row is returned but changes to
+<code>TRUE</code> where the result is a single column, while it is
+always <code>FALSE</code> for <code>tibble</code>s. A difference in
+behavior between <code>data.table</code> and <code>tibble</code> (any by
+extension <code>prt</code>) is a missing <code>j</code> argument: in the
+<code>tibble</code> (and in the <code>data.frame</code>) implementation,
+the <code>i</code> argument is then interpreted as column specification,
+whereas for <code>data.frame</code>s, <code>i</code> remains a row
+selection.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>datasets<span class="sc">::</span>mtcars[, <span class="st">&quot;mpg&quot;</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [1] 21.0 21.0 22.8 21.4 18.7 18.1 14.3 24.4 22.8 19.2 17.8 16.4 17.3 15.2 10.4</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [16] 10.4 14.7 32.4 30.4 33.9 21.5 15.5 15.2 13.3 19.2 27.3 26.0 30.4 15.8 19.7</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [31] 15.0 21.4</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>flights[, <span class="st">&quot;dep_time&quot;</span>]</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         dep_time</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      1:      517</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      2:      533</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      3:      542</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      4:      544</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      5:      554</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     ---         </span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336772:       NA</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336773:       NA</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336774:       NA</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336775:       NA</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336776:       NA</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>jan_dt <span class="ot">&lt;-</span> flights[flights<span class="sc">$</span>month <span class="sc">==</span> 1L, ]</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>jan_dt[1L]</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    year month day dep_time sched_dep_time dep_delay arr_time sched_arr_time</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1: 2013     1   1      517            515         2      830            819</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    arr_delay carrier flight tailnum origin dest air_time distance hour minute</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1:        11      UA   1545  N14228    EWR  IAH      227     1400    5     15</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;              time_hour</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1: 2013-01-01 05:00:00</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>flights[1L]</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         year</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      1: 2013</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      2: 2013</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      3: 2013</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      4: 2013</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      5: 2013</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     ---     </span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336772: 2013</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336773: 2013</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336774: 2013</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336775: 2013</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336776: 2013</span></span></code></pre></div>
+<p>Deviation of <code>prt</code> subsetting behavior from that of
+<code>tibble</code> objects is most likely unintentional and bug reports
+are much appreciated as github <a href="https://github.com/nbenn/prt/issues/new">issues</a>.</p>
+<p>The main feature of <code>prt</code> is the ability to load only a
+subset of a much larger tabular dataset and a useful function for
+selecting rows and columns of a table in a concise manner is the base R
+S3 generic function <code>subset()</code>. As such, a <code>prt</code>
+specific method is provided by this package. Using this functionality,
+above query for selecting all flights in January can be written as
+follows</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">identical</span>(jan_dt, <span class="fu">subset</span>(flights, month <span class="sc">==</span> 1L))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>To illustrate the importance of row-ordering consider the following
+small benchmark example: we subset on the <code>carrier</code> column,
+selecting only American Airlines flights. In one <code>prt</code>
+object, rows are ordered by carrier whereas in the other they are not,
+which will cause rows that are interleaved with those corresponding to
+<code>AA</code> flights to be read and discarded.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bench<span class="sc">::</span><span class="fu">mark</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(flights, carrier <span class="sc">==</span> <span class="st">&quot;AA&quot;</span>),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(by_carrier, carrier <span class="sc">==</span> <span class="st">&quot;AA&quot;</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning: Some expressions had a GC in every iteration; so filtering is disabled.</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 6</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   expression                             min median `itr/sec` mem_alloc `gc/sec`</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;bch:expr&gt;                          &lt;bch:&gt; &lt;bch:&gt;     &lt;dbl&gt; &lt;bch:byt&gt;    &lt;dbl&gt;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1 subset(flights, carrier == &quot;AA&quot;)    56.5ms 59.6ms      15.9    56.4MB     19.9</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 subset(by_carrier, carrier == &quot;AA&quot;) 16.1ms 16.7ms      57.7    17.7MB     13.9</span></span></code></pre></div>
+<p>A common problem with non-standard evaluation (NSE) is potential
+ambiguity. Symbols in expressions passed as <code>subset</code> and
+<code>select</code> arguments are first resolved in the context of the
+data, followed by the environment the expression was created in (the <a href="https://rlang.r-lib.org/reference/topic-defuse.html">quosure</a>
+environment). Expressions are evaluated using
+<code>rlang::eval_tidy()</code>, which makes possible the distinction
+between symbols referring to the data mask from those referring to the
+expression environment. This can either be achieved using the
+<code>.data</code> and <code>.env</code> pronouns or by <a href="https://rlang.r-lib.org/reference/topic-inject.html">forcing parts
+of the expression</a>.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>month <span class="ot">&lt;-</span> 1L</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">subset</span>(flights, month <span class="sc">==</span> month, 1L<span class="sc">:</span>7L)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         year month day dep_time sched_dep_time dep_delay arr_time</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      1: 2013     1   1      517            515         2      830</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      2: 2013     1   1      533            529         4      850</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      3: 2013     1   1      542            540         2      923</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      4: 2013     1   1      544            545        -1     1004</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      5: 2013     1   1      554            600        -6      812</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     ---                                                          </span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336772: 2013     9  30       NA           1455        NA       NA</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336773: 2013     9  30       NA           2200        NA       NA</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336774: 2013     9  30       NA           1210        NA       NA</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336775: 2013     9  30       NA           1159        NA       NA</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336776: 2013     9  30       NA            840        NA       NA</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="fu">identical</span>(jan_dt, <span class="fu">subset</span>(flights, month <span class="sc">==</span> <span class="sc">!!</span>month))</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="fu">identical</span>(jan_dt, <span class="fu">subset</span>(flights, .env<span class="sc">$</span>month <span class="sc">==</span> .data<span class="sc">$</span>month))</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>While in the above example it is fairly clear what is happening and
+it should come as no surprise that the symbol <code>month</code> cannot
+simultaneously refer to a value in the calling environment and the name
+of a column in the data mask, a more subtle issue is considered in the
+following example. The environment which takes precedence for evaluating
+the <code>select</code> argument is a named list of column indices. This
+makes it possible for example to specify a range of columns as (and
+makes the behavior of <code>subset()</code> being applied to a
+<code>prt</code> object consistent with that of a
+<code>data.frame</code>).</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">subset</span>(flights, <span class="at">select =</span> year<span class="sc">:</span>day)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         year month day</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      1: 2013     1   1</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      2: 2013     1   1</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      3: 2013     1   1</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      4: 2013     1   1</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      5: 2013     1   1</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     ---               </span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336772: 2013     9  30</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336773: 2013     9  30</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336774: 2013     9  30</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336775: 2013     9  30</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 336776: 2013     9  30</span></span></code></pre></div>
+<p>Now recall that symbols that cannot be resolved in this data
+environment will be looked up in the calling environment. Therefore the
+following effect, while potentially unintuitive, can easily be
+explained. Again, the <code>.data</code> and <code>.env</code> pronouns
+can be used to resolve potential issues.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>sched_dep_time <span class="ot">&lt;-</span> <span class="st">&quot;dep_time&quot;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(<span class="fu">subset</span>(flights, <span class="at">select =</span> sched_dep_time))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;sched_dep_time&quot;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>actual_dep_time <span class="ot">&lt;-</span> <span class="st">&quot;dep_time&quot;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(<span class="fu">subset</span>(flights, <span class="at">select =</span> actual_dep_time))</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;dep_time&quot;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(<span class="fu">subset</span>(flights, <span class="at">select =</span> .env<span class="sc">$</span>sched_dep_time))</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;dep_time&quot;</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(<span class="fu">subset</span>(flights, <span class="at">select =</span> .env<span class="sc">$</span>actual_dep_time))</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;dep_time&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(<span class="fu">subset</span>(flights, <span class="at">select =</span> .data<span class="sc">$</span>sched_dep_time))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;sched_dep_time&quot;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(<span class="fu">subset</span>(flights, <span class="at">select =</span> .data<span class="sc">$</span>actual_dep_time))</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Error in `.data$actual_dep_time`:</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ! Column `actual_dep_time` not found in `.data`.</span></span></code></pre></div>
+<p>By default, <code>subset</code> expressions have to be evaluated on
+the entire dataset at once in order to be consistent with base R
+<code>subset()</code> for <code>data.frames</code>. Often times this is
+inefficient and this behavior can be modified using the
+<code>part_saft</code> argument. Consider the following query which
+selects all rows where the arrival delay is larger than the mean arrival
+delay. Obviously an expression like this can yield different results
+depending on whether it is evaluated on individual partitions or over
+the entire data. Other queries such as the one above where we threshold
+on a fixed value, however can safely be evaluated on partitions
+individually.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>is_true <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="sc">!</span><span class="fu">is.na</span>(x) <span class="sc">&amp;</span> x</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>expr <span class="ot">&lt;-</span> <span class="fu">quote</span>(<span class="fu">is_true</span>(arr_delay <span class="sc">&gt;</span> <span class="fu">mean</span>(arr_delay, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">subset_quo</span>(flights, expr, <span class="at">part_safe =</span> <span class="cn">FALSE</span>))</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 105827</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">subset_quo</span>(flights, expr, <span class="at">part_safe =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 104752</span></span></code></pre></div>
+<p>As an aside, in addition to <code>subset()</code>, which creates
+quosures from the expressions passed as <code>subset</code> and
+<code>select</code>, (using <code>rlang::enquo()</code>) the function
+<code>subset_quo()</code> which operates on already quoted expressions
+is exported as well. Thanks to the double curly brace forwarding
+operator introduced in rlang 0.4.0, this escape-hatch mechanism however
+is of lesser importance.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>col_safe_subset <span class="ot">&lt;-</span> <span class="cf">function</span>(x, expr, cols) {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stopifnot</span>(<span class="fu">is_prt</span>(x), <span class="fu">is.character</span>(cols))</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(x, {{ expr }}, .env<span class="sc">$</span>cols)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>air_time <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;dep_time&quot;</span>, <span class="st">&quot;arr_time&quot;</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="fu">col_safe_subset</span>(flights, month <span class="sc">==</span> 1L, air_time)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        dep_time arr_time</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     1:      517      830</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     2:      533      850</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     3:      542      923</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     4:      544     1004</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     5:      554      812</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    ---                  </span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 27000:       NA       NA</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 27001:       NA       NA</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 27002:       NA       NA</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 27003:       NA       NA</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 27004:       NA       NA</span></span></code></pre></div>
+<p>In addition to subsetting, concise and informative printing is
+another area which effort ha been put into. Inspired by (and liberally
+borrowing code from) <code>tibble</code>, the <code>print()</code>
+method of <code>fst</code> objects adds the <code>data.table</code>
+approach of showing both the first and last <code>n</code> rows of the
+table in question. This functionality can be used by other classes used
+to represent tabular data, as the function <code>trunc_dt()</code>
+driving this is exported. All that is required are implementations of
+the base S3 generic functions <code>dim()</code>, <code>head()</code>,
+<code>tail()</code> and of course <code>print()</code>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>new_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(...) <span class="fu">structure</span>(<span class="fu">list</span>(...), <span class="at">class =</span> <span class="st">&quot;my_tbl&quot;</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>dim.my_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  rows <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">lengths</span>(x))</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stopifnot</span>(<span class="fu">length</span>(rows) <span class="sc">==</span> 1L)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(rows, <span class="fu">length</span>(x))</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>head.my_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">n =</span> 6L, ...) {</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>(<span class="fu">lapply</span>(x, <span class="st">`</span><span class="at">[</span><span class="st">`</span>, <span class="fu">seq_len</span>(n)))</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>tail.my_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">n =</span> 6L, ...) {</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>(<span class="fu">lapply</span>(x, <span class="st">`</span><span class="at">[</span><span class="st">`</span>, <span class="fu">seq</span>(<span class="fu">nrow</span>(x) <span class="sc">-</span> n <span class="sc">+</span> 1L, <span class="fu">nrow</span>(x))))</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>print.my_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ..., <span class="at">n =</span> <span class="cn">NULL</span>, <span class="at">width =</span> <span class="cn">NULL</span>,</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>                         <span class="at">max_extra_cols =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">format</span>(</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">trunc_dt</span>(x, <span class="at">n =</span> n, <span class="at">width =</span> width, <span class="at">max_extra_cols =</span> max_extra_cols)</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">paste0</span>(out, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>), <span class="at">sep =</span> <span class="st">&quot;&quot;</span>)</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">invisible</span>(x)</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">new_tbl</span>(<span class="at">a =</span> letters, <span class="at">b =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">26</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Description: my_tbl[,2]</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    a         b</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;chr&gt; &lt;int&gt;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1 a         1</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2 b         2</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3 c         3</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4 d         4</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5 e         5</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  …  </span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 22 v        22</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 23 w        23</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 24 x        24</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 25 y        25</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 26 z        26</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 16 more rows</span></span></code></pre></div>
+<p>Similarly, the function <code>glimpse_dt()</code> which can be used
+to implement a class-specific function for the <code>tibble</code> S3
+generic <code>tibble::glimpse()</code>. In order to customize the text
+description of the object a class-specific function for the
+<code>tibble</code> S3 generic <code>tibble::tbl_sum()</code> can be
+provided.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unlink</span>(tmp, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 
 
 

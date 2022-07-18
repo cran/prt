@@ -1,3 +1,7 @@
+# prt 0.1.5
+
+* Maintenance release for upcoming update to pillar.
+
 # prt 0.1.4
 
 * Maintenance release.

@@ -1,10 +1,10 @@
 Package: prt
 Title: Tabular Data Backed by Partitioned 'fst' Files
-Version: 0.1.4
+Version: 0.1.5
 Authors@R: c(person(given = "Nicolas",
                     family = "Bennett",
                     role = c("aut", "cre"),
-                    email = "nicolas.bennett@stat.math.ethz.ch"),
+                    email = "r@nbenn.ch"),
              person(given = "Drago",
                     family = "Plecko",
                     role = "ctb",
@@ -18,12 +18,12 @@ Imports: assertthat, fst, data.table, utils, vctrs, tibble, cli,
 Suggests: testthat, xml2, covr, withr, nycflights13, datasets,
         rmarkdown, knitr, bench
 Encoding: UTF-8
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.0
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2021-05-16 07:24:22 UTC; nbennett
+Packaged: 2022-07-11 07:46:53 UTC; nbennett
 Author: Nicolas Bennett [aut, cre],
   Drago Plecko [ctb]
-Maintainer: Nicolas Bennett <nicolas.bennett@stat.math.ethz.ch>
+Maintainer: Nicolas Bennett <r@nbenn.ch>
 Repository: CRAN
-Date/Publication: 2021-05-16 08:00:06 UTC
+Date/Publication: 2022-07-18 09:40:02 UTC
