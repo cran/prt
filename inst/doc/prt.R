@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -71,8 +71,10 @@ colnames(subset(flights, select = .env$sched_dep_time))
 colnames(subset(flights, select = .env$actual_dep_time))
 
 ## ----nse-issue3, error = TRUE, eval = getRversion() > "3.5.0"-----------------
+try({
 colnames(subset(flights, select = .data$sched_dep_time))
 colnames(subset(flights, select = .data$actual_dep_time))
+})
 
 ## ----part_safe----------------------------------------------------------------
 is_true <- function(x) !is.na(x) & x

@@ -49,7 +49,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -60,7 +60,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -368,45 +368,48 @@ file-based data back ends.</p>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>dat <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">setDT</span>(nycflights13<span class="sc">::</span>flights)</span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">print</span>(dat)</span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt;         year month day dep_time sched_dep_time dep_delay arr_time</span></span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt;      1: 2013     1   1      517            515         2      830</span></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&gt;      2: 2013     1   1      533            529         4      850</span></span>
-<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&gt;      3: 2013     1   1      542            540         2      923</span></span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co">#&gt;      4: 2013     1   1      544            545        -1     1004</span></span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co">#&gt;      5: 2013     1   1      554            600        -6      812</span></span>
-<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="co">#&gt;     ---                                                          </span></span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co">#&gt; 336772: 2013     9  30       NA           1455        NA       NA</span></span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co">#&gt; 336773: 2013     9  30       NA           2200        NA       NA</span></span>
-<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co">#&gt; 336774: 2013     9  30       NA           1210        NA       NA</span></span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co">#&gt; 336775: 2013     9  30       NA           1159        NA       NA</span></span>
-<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="co">#&gt; 336776: 2013     9  30       NA            840        NA       NA</span></span>
-<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="co">#&gt;         sched_arr_time arr_delay carrier flight tailnum origin dest air_time</span></span>
-<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co">#&gt;      1:            819        11      UA   1545  N14228    EWR  IAH      227</span></span>
-<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="co">#&gt;      2:            830        20      UA   1714  N24211    LGA  IAH      227</span></span>
-<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a><span class="co">#&gt;      3:            850        33      AA   1141  N619AA    JFK  MIA      160</span></span>
-<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co">#&gt;      4:           1022       -18      B6    725  N804JB    JFK  BQN      183</span></span>
-<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="co">#&gt;      5:            837       -25      DL    461  N668DN    LGA  ATL      116</span></span>
-<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a><span class="co">#&gt;     ---                                                                     </span></span>
-<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a><span class="co">#&gt; 336772:           1634        NA      9E   3393    &lt;NA&gt;    JFK  DCA       NA</span></span>
-<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a><span class="co">#&gt; 336773:           2312        NA      9E   3525    &lt;NA&gt;    LGA  SYR       NA</span></span>
-<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a><span class="co">#&gt; 336774:           1330        NA      MQ   3461  N535MQ    LGA  BNA       NA</span></span>
-<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a><span class="co">#&gt; 336775:           1344        NA      MQ   3572  N511MQ    LGA  CLE       NA</span></span>
-<span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a><span class="co">#&gt; 336776:           1020        NA      MQ   3531  N839MQ    LGA  RDU       NA</span></span>
-<span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a><span class="co">#&gt;         distance hour minute           time_hour</span></span>
-<span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a><span class="co">#&gt;      1:     1400    5     15 2013-01-01 05:00:00</span></span>
-<span id="cb1-32"><a href="#cb1-32" tabindex="-1"></a><span class="co">#&gt;      2:     1416    5     29 2013-01-01 05:00:00</span></span>
-<span id="cb1-33"><a href="#cb1-33" tabindex="-1"></a><span class="co">#&gt;      3:     1089    5     40 2013-01-01 05:00:00</span></span>
-<span id="cb1-34"><a href="#cb1-34" tabindex="-1"></a><span class="co">#&gt;      4:     1576    5     45 2013-01-01 05:00:00</span></span>
-<span id="cb1-35"><a href="#cb1-35" tabindex="-1"></a><span class="co">#&gt;      5:      762    6      0 2013-01-01 06:00:00</span></span>
-<span id="cb1-36"><a href="#cb1-36" tabindex="-1"></a><span class="co">#&gt;     ---                                         </span></span>
-<span id="cb1-37"><a href="#cb1-37" tabindex="-1"></a><span class="co">#&gt; 336772:      213   14     55 2013-09-30 14:00:00</span></span>
-<span id="cb1-38"><a href="#cb1-38" tabindex="-1"></a><span class="co">#&gt; 336773:      198   22      0 2013-09-30 22:00:00</span></span>
-<span id="cb1-39"><a href="#cb1-39" tabindex="-1"></a><span class="co">#&gt; 336774:      764   12     10 2013-09-30 12:00:00</span></span>
-<span id="cb1-40"><a href="#cb1-40" tabindex="-1"></a><span class="co">#&gt; 336775:      419   11     59 2013-09-30 11:00:00</span></span>
-<span id="cb1-41"><a href="#cb1-41" tabindex="-1"></a><span class="co">#&gt; 336776:      431    8     40 2013-09-30 08:00:00</span></span></code></pre></div>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt;          year month   day dep_time sched_dep_time dep_delay arr_time</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt;         &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;num&gt;    &lt;int&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&gt;      1:  2013     1     1      517            515         2      830</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&gt;      2:  2013     1     1      533            529         4      850</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co">#&gt;      3:  2013     1     1      542            540         2      923</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co">#&gt;      4:  2013     1     1      544            545        -1     1004</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="co">#&gt;      5:  2013     1     1      554            600        -6      812</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co">#&gt;     ---                                                             </span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co">#&gt; 336772:  2013     9    30       NA           1455        NA       NA</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co">#&gt; 336773:  2013     9    30       NA           2200        NA       NA</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co">#&gt; 336774:  2013     9    30       NA           1210        NA       NA</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="co">#&gt; 336775:  2013     9    30       NA           1159        NA       NA</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="co">#&gt; 336776:  2013     9    30       NA            840        NA       NA</span></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co">#&gt;         sched_arr_time arr_delay carrier flight tailnum origin   dest air_time</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="co">#&gt;                  &lt;int&gt;     &lt;num&gt;  &lt;char&gt;  &lt;int&gt;  &lt;char&gt; &lt;char&gt; &lt;char&gt;    &lt;num&gt;</span></span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a><span class="co">#&gt;      1:            819        11      UA   1545  N14228    EWR    IAH      227</span></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co">#&gt;      2:            830        20      UA   1714  N24211    LGA    IAH      227</span></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="co">#&gt;      3:            850        33      AA   1141  N619AA    JFK    MIA      160</span></span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a><span class="co">#&gt;      4:           1022       -18      B6    725  N804JB    JFK    BQN      183</span></span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a><span class="co">#&gt;      5:            837       -25      DL    461  N668DN    LGA    ATL      116</span></span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a><span class="co">#&gt;     ---                                                                       </span></span>
+<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a><span class="co">#&gt; 336772:           1634        NA      9E   3393    &lt;NA&gt;    JFK    DCA       NA</span></span>
+<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a><span class="co">#&gt; 336773:           2312        NA      9E   3525    &lt;NA&gt;    LGA    SYR       NA</span></span>
+<span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a><span class="co">#&gt; 336774:           1330        NA      MQ   3461  N535MQ    LGA    BNA       NA</span></span>
+<span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a><span class="co">#&gt; 336775:           1344        NA      MQ   3572  N511MQ    LGA    CLE       NA</span></span>
+<span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a><span class="co">#&gt; 336776:           1020        NA      MQ   3531  N839MQ    LGA    RDU       NA</span></span>
+<span id="cb1-32"><a href="#cb1-32" tabindex="-1"></a><span class="co">#&gt;         distance  hour minute           time_hour</span></span>
+<span id="cb1-33"><a href="#cb1-33" tabindex="-1"></a><span class="co">#&gt;            &lt;num&gt; &lt;num&gt;  &lt;num&gt;              &lt;POSc&gt;</span></span>
+<span id="cb1-34"><a href="#cb1-34" tabindex="-1"></a><span class="co">#&gt;      1:     1400     5     15 2013-01-01 05:00:00</span></span>
+<span id="cb1-35"><a href="#cb1-35" tabindex="-1"></a><span class="co">#&gt;      2:     1416     5     29 2013-01-01 05:00:00</span></span>
+<span id="cb1-36"><a href="#cb1-36" tabindex="-1"></a><span class="co">#&gt;      3:     1089     5     40 2013-01-01 05:00:00</span></span>
+<span id="cb1-37"><a href="#cb1-37" tabindex="-1"></a><span class="co">#&gt;      4:     1576     5     45 2013-01-01 05:00:00</span></span>
+<span id="cb1-38"><a href="#cb1-38" tabindex="-1"></a><span class="co">#&gt;      5:      762     6      0 2013-01-01 06:00:00</span></span>
+<span id="cb1-39"><a href="#cb1-39" tabindex="-1"></a><span class="co">#&gt;     ---                                          </span></span>
+<span id="cb1-40"><a href="#cb1-40" tabindex="-1"></a><span class="co">#&gt; 336772:      213    14     55 2013-09-30 14:00:00</span></span>
+<span id="cb1-41"><a href="#cb1-41" tabindex="-1"></a><span class="co">#&gt; 336773:      198    22      0 2013-09-30 22:00:00</span></span>
+<span id="cb1-42"><a href="#cb1-42" tabindex="-1"></a><span class="co">#&gt; 336774:      764    12     10 2013-09-30 12:00:00</span></span>
+<span id="cb1-43"><a href="#cb1-43" tabindex="-1"></a><span class="co">#&gt; 336775:      419    11     59 2013-09-30 11:00:00</span></span>
+<span id="cb1-44"><a href="#cb1-44" tabindex="-1"></a><span class="co">#&gt; 336776:      431     8     40 2013-09-30 08:00:00</span></span></code></pre></div>
 <p>Creating a <code>prt</code> object consisting of 2 partitions can for
 example be done as</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>flights <span class="ot">&lt;-</span> <span class="fu">as_prt</span>(dat, <span class="at">n_chunks =</span> 2L, <span class="at">dir =</span> <span class="fu">tempfile</span>(<span class="at">tmpdir =</span> tmp))</span>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>flights <span class="ot">&lt;-</span> <span class="fu">as_prt</span>(dat, <span class="at">n_chunks =</span> <span class="dv">2</span><span class="dt">L</span>, <span class="at">dir =</span> <span class="fu">tempfile</span>(<span class="at">tmpdir =</span> tmp))</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">print</span>(flights)</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt; # A prt:        336,776 × 19</span></span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt; # Partitioning: [168,388, 168,388] rows</span></span>
@@ -469,7 +472,7 @@ Columns can be extracted using <code>[[</code>, <code>$</code> (with
 partial matching being disallowed), or by selecting a single column with
 <code>[</code> and passing <code>TRUE</code> as <code>drop</code>
 argument.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">str</span>(flights[[1L]])</span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">str</span>(flights[[<span class="dv">1</span><span class="dt">L</span>]])</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt;  int [1:336776] 2013 2013 2013 2013 2013 2013 2013 2013 2013 2013 ...</span></span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">identical</span>(flights[[<span class="st">&quot;year&quot;</span>]], flights<span class="sc">$</span>year)</span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
@@ -500,40 +503,45 @@ selection.</p>
 <span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; [31] 15.0 21.4</span></span>
 <span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>flights[, <span class="st">&quot;dep_time&quot;</span>]</span>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt;         dep_time</span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;      1:      517</span></span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt;      2:      533</span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;      3:      542</span></span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt;      4:      544</span></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt;      5:      554</span></span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;     ---         </span></span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; 336772:       NA</span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; 336773:       NA</span></span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; 336774:       NA</span></span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; 336775:       NA</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; 336776:       NA</span></span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a></span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>jan_dt <span class="ot">&lt;-</span> flights[flights<span class="sc">$</span>month <span class="sc">==</span> 1L, ]</span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a></span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>jan_dt[1L]</span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt;    year month day dep_time sched_dep_time dep_delay arr_time sched_arr_time</span></span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; 1: 2013     1   1      517            515         2      830            819</span></span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt;    arr_delay carrier flight tailnum origin dest air_time distance hour minute</span></span>
-<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; 1:        11      UA   1545  N14228    EWR  IAH      227     1400    5     15</span></span>
-<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt;              time_hour</span></span>
-<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt; 1: 2013-01-01 05:00:00</span></span>
-<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a>flights[1L]</span>
-<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="co">#&gt;         year</span></span>
-<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="co">#&gt;      1: 2013</span></span>
-<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a><span class="co">#&gt;      2: 2013</span></span>
-<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a><span class="co">#&gt;      3: 2013</span></span>
-<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a><span class="co">#&gt;      4: 2013</span></span>
-<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a><span class="co">#&gt;      5: 2013</span></span>
-<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a><span class="co">#&gt;     ---     </span></span>
-<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a><span class="co">#&gt; 336772: 2013</span></span>
-<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a><span class="co">#&gt; 336773: 2013</span></span>
-<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a><span class="co">#&gt; 336774: 2013</span></span>
-<span id="cb5-39"><a href="#cb5-39" tabindex="-1"></a><span class="co">#&gt; 336775: 2013</span></span>
-<span id="cb5-40"><a href="#cb5-40" tabindex="-1"></a><span class="co">#&gt; 336776: 2013</span></span></code></pre></div>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;            &lt;int&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt;      1:      517</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;      2:      533</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt;      3:      542</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt;      4:      544</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;      5:      554</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt;     ---         </span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; 336772:       NA</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; 336773:       NA</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; 336774:       NA</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; 336775:       NA</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; 336776:       NA</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>jan_dt <span class="ot">&lt;-</span> flights[flights<span class="sc">$</span>month <span class="sc">==</span> <span class="dv">1</span><span class="dt">L</span>, ]</span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>jan_dt[<span class="dv">1</span><span class="dt">L</span>]</span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt;     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt;    &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;num&gt;    &lt;int&gt;          &lt;int&gt;</span></span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; 1:  2013     1     1      517            515         2      830            819</span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt;    arr_delay carrier flight tailnum origin   dest air_time distance  hour</span></span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt;        &lt;num&gt;  &lt;char&gt;  &lt;int&gt;  &lt;char&gt; &lt;char&gt; &lt;char&gt;    &lt;num&gt;    &lt;num&gt; &lt;num&gt;</span></span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="co">#&gt; 1:        11      UA   1545  N14228    EWR    IAH      227     1400     5</span></span>
+<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="co">#&gt;    minute           time_hour</span></span>
+<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="co">#&gt;     &lt;num&gt;              &lt;POSc&gt;</span></span>
+<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a><span class="co">#&gt; 1:     15 2013-01-01 05:00:00</span></span>
+<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a>flights[<span class="dv">1</span><span class="dt">L</span>]</span>
+<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a><span class="co">#&gt;          year</span></span>
+<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a><span class="co">#&gt;         &lt;int&gt;</span></span>
+<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a><span class="co">#&gt;      1:  2013</span></span>
+<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a><span class="co">#&gt;      2:  2013</span></span>
+<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a><span class="co">#&gt;      3:  2013</span></span>
+<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a><span class="co">#&gt;      4:  2013</span></span>
+<span id="cb5-39"><a href="#cb5-39" tabindex="-1"></a><span class="co">#&gt;      5:  2013</span></span>
+<span id="cb5-40"><a href="#cb5-40" tabindex="-1"></a><span class="co">#&gt;     ---      </span></span>
+<span id="cb5-41"><a href="#cb5-41" tabindex="-1"></a><span class="co">#&gt; 336772:  2013</span></span>
+<span id="cb5-42"><a href="#cb5-42" tabindex="-1"></a><span class="co">#&gt; 336773:  2013</span></span>
+<span id="cb5-43"><a href="#cb5-43" tabindex="-1"></a><span class="co">#&gt; 336774:  2013</span></span>
+<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a><span class="co">#&gt; 336775:  2013</span></span>
+<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a><span class="co">#&gt; 336776:  2013</span></span></code></pre></div>
 <p>Deviation of <code>prt</code> subsetting behavior from that of
 <code>tibble</code> objects is most likely unintentional and bug reports
 are much appreciated as github <a href="https://github.com/nbenn/prt/issues/new">issues</a>.</p>
@@ -544,7 +552,7 @@ S3 generic function <code>subset()</code>. As such, a <code>prt</code>
 specific method is provided by this package. Using this functionality,
 above query for selecting all flights in January can be written as
 follows</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">identical</span>(jan_dt, <span class="fu">subset</span>(flights, month <span class="sc">==</span> 1L))</span>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">identical</span>(jan_dt, <span class="fu">subset</span>(flights, month <span class="sc">==</span> <span class="dv">1</span><span class="dt">L</span>))</span>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>To illustrate the importance of row-ordering consider the following
 small benchmark example: we subset on the <code>carrier</code> column,
@@ -556,11 +564,13 @@ which will cause rows that are interleaved with those corresponding to
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">subset</span>(flights, carrier <span class="sc">==</span> <span class="st">&quot;AA&quot;</span>),</span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="fu">subset</span>(by_carrier, carrier <span class="sc">==</span> <span class="st">&quot;AA&quot;</span>)</span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>)</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 6</span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt;   expression                             min median `itr/sec` mem_alloc `gc/sec`</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt;   &lt;bch:expr&gt;                          &lt;bch:&gt; &lt;bch:&gt;     &lt;dbl&gt; &lt;bch:byt&gt;    &lt;dbl&gt;</span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; 1 subset(flights, carrier == &quot;AA&quot;)    69.7ms   74ms      13.5    56.3MB     47.3</span></span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; 2 subset(by_carrier, carrier == &quot;AA&quot;) 18.1ms 18.6ms      52.5    17.7MB     26.3</span></span></code></pre></div>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; Warning: Some expressions had a GC in every iteration; so filtering is</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; disabled.</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 6</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt;   expression                             min median `itr/sec` mem_alloc `gc/sec`</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt;   &lt;bch:expr&gt;                          &lt;bch:&gt; &lt;bch:&gt;     &lt;dbl&gt; &lt;bch:byt&gt;    &lt;dbl&gt;</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; 1 &quot;subset(flights, carrier == \&quot;AA\&quot;… 78.7ms 81.1ms      11.6    56.3MB     15.5</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; 2 &quot;subset(by_carrier, carrier == \&quot;A… 18.5ms 19.6ms      49.9    17.7MB     12.0</span></span></code></pre></div>
 <p>A common problem with non-standard evaluation (NSE) is potential
 ambiguity. Symbols in expressions passed as <code>subset</code> and
 <code>select</code> arguments are first resolved in the context of the
@@ -571,25 +581,26 @@ between symbols referring to the data mask from those referring to the
 expression environment. This can either be achieved using the
 <code>.data</code> and <code>.env</code> pronouns or by <a href="https://rlang.r-lib.org/reference/topic-inject.html">forcing parts
 of the expression</a>.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>month <span class="ot">&lt;-</span> 1L</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">subset</span>(flights, month <span class="sc">==</span> month, 1L<span class="sc">:</span>7L)</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt;         year month day dep_time sched_dep_time dep_delay arr_time</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;      1: 2013     1   1      517            515         2      830</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt;      2: 2013     1   1      533            529         4      850</span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt;      3: 2013     1   1      542            540         2      923</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;      4: 2013     1   1      544            545        -1     1004</span></span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;      5: 2013     1   1      554            600        -6      812</span></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;     ---                                                          </span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; 336772: 2013     9  30       NA           1455        NA       NA</span></span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; 336773: 2013     9  30       NA           2200        NA       NA</span></span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; 336774: 2013     9  30       NA           1210        NA       NA</span></span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; 336775: 2013     9  30       NA           1159        NA       NA</span></span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; 336776: 2013     9  30       NA            840        NA       NA</span></span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a></span>
-<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="fu">identical</span>(jan_dt, <span class="fu">subset</span>(flights, month <span class="sc">==</span> <span class="sc">!!</span>month))</span>
-<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
-<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="fu">identical</span>(jan_dt, <span class="fu">subset</span>(flights, .env<span class="sc">$</span>month <span class="sc">==</span> .data<span class="sc">$</span>month))</span>
-<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>month <span class="ot">&lt;-</span> <span class="dv">1</span><span class="dt">L</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">subset</span>(flights, month <span class="sc">==</span> month, <span class="dv">1</span><span class="dt">L</span><span class="sc">:</span><span class="dv">7</span><span class="dt">L</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt;          year month   day dep_time sched_dep_time dep_delay arr_time</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;         &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;num&gt;    &lt;int&gt;</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt;      1:  2013     1     1      517            515         2      830</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt;      2:  2013     1     1      533            529         4      850</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;      3:  2013     1     1      542            540         2      923</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;      4:  2013     1     1      544            545        -1     1004</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;      5:  2013     1     1      554            600        -6      812</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt;     ---                                                             </span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; 336772:  2013     9    30       NA           1455        NA       NA</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; 336773:  2013     9    30       NA           2200        NA       NA</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; 336774:  2013     9    30       NA           1210        NA       NA</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; 336775:  2013     9    30       NA           1159        NA       NA</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; 336776:  2013     9    30       NA            840        NA       NA</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="fu">identical</span>(jan_dt, <span class="fu">subset</span>(flights, month <span class="sc">==</span> <span class="sc">!!</span>month))</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="fu">identical</span>(jan_dt, <span class="fu">subset</span>(flights, .env<span class="sc">$</span>month <span class="sc">==</span> .data<span class="sc">$</span>month))</span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>While in the above example it is fairly clear what is happening and
 it should come as no surprise that the symbol <code>month</code> cannot
 simultaneously refer to a value in the calling environment and the name
@@ -601,18 +612,19 @@ makes the behavior of <code>subset()</code> being applied to a
 <code>prt</code> object consistent with that of a
 <code>data.frame</code>).</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">subset</span>(flights, <span class="at">select =</span> year<span class="sc">:</span>day)</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt;         year month day</span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt;      1: 2013     1   1</span></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt;      2: 2013     1   1</span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt;      3: 2013     1   1</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt;      4: 2013     1   1</span></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt;      5: 2013     1   1</span></span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt;     ---               </span></span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; 336772: 2013     9  30</span></span>
-<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; 336773: 2013     9  30</span></span>
-<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; 336774: 2013     9  30</span></span>
-<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; 336775: 2013     9  30</span></span>
-<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; 336776: 2013     9  30</span></span></code></pre></div>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt;          year month   day</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt;         &lt;int&gt; &lt;int&gt; &lt;int&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt;      1:  2013     1     1</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt;      2:  2013     1     1</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt;      3:  2013     1     1</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt;      4:  2013     1     1</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt;      5:  2013     1     1</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt;     ---                  </span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; 336772:  2013     9    30</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; 336773:  2013     9    30</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; 336774:  2013     9    30</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; 336775:  2013     9    30</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; 336776:  2013     9    30</span></span></code></pre></div>
 <p>Now recall that symbols that cannot be resolved in this data
 environment will be looked up in the calling environment. Therefore the
 following effect, while potentially unintuitive, can easily be
@@ -665,19 +677,20 @@ is of lesser importance.</p>
 <span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>}</span>
 <span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a></span>
 <span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>air_time <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;dep_time&quot;</span>, <span class="st">&quot;arr_time&quot;</span>)</span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="fu">col_safe_subset</span>(flights, month <span class="sc">==</span> 1L, air_time)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="fu">col_safe_subset</span>(flights, month <span class="sc">==</span> <span class="dv">1</span><span class="dt">L</span>, air_time)</span>
 <span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="co">#&gt;        dep_time arr_time</span></span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt;     1:      517      830</span></span>
-<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt;     2:      533      850</span></span>
-<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt;     3:      542      923</span></span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt;     4:      544     1004</span></span>
-<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co">#&gt;     5:      554      812</span></span>
-<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt;    ---                  </span></span>
-<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt; 27000:       NA       NA</span></span>
-<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; 27001:       NA       NA</span></span>
-<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; 27002:       NA       NA</span></span>
-<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt; 27003:       NA       NA</span></span>
-<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co">#&gt; 27004:       NA       NA</span></span></code></pre></div>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt;           &lt;int&gt;    &lt;int&gt;</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt;     1:      517      830</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt;     2:      533      850</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt;     3:      542      923</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co">#&gt;     4:      544     1004</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt;     5:      554      812</span></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt;    ---                  </span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; 27000:       NA       NA</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; 27001:       NA       NA</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt; 27002:       NA       NA</span></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co">#&gt; 27003:       NA       NA</span></span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a><span class="co">#&gt; 27004:       NA       NA</span></span></code></pre></div>
 <p>In addition to subsetting, concise and informative printing is
 another area which effort ha been put into. Inspired by (and liberally
 borrowing code from) <code>tibble</code>, the <code>print()</code>
@@ -692,16 +705,16 @@ the base S3 generic functions <code>dim()</code>, <code>head()</code>,
 <span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>dim.my_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
 <span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  rows <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">lengths</span>(x))</span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="fu">stopifnot</span>(<span class="fu">length</span>(rows) <span class="sc">==</span> 1L)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="fu">stopifnot</span>(<span class="fu">length</span>(rows) <span class="sc">==</span> <span class="dv">1</span><span class="dt">L</span>)</span>
 <span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  <span class="fu">c</span>(rows, <span class="fu">length</span>(x))</span>
 <span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>}</span>
 <span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a></span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>head.my_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">n =</span> 6L, ...) {</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>head.my_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">n =</span> <span class="dv">6</span><span class="dt">L</span>, ...) {</span>
 <span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>  <span class="fu">as.data.frame</span>(<span class="fu">lapply</span>(x, <span class="st">`</span><span class="at">[</span><span class="st">`</span>, <span class="fu">seq_len</span>(n)))</span>
 <span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>}</span>
 <span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a></span>
-<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>tail.my_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">n =</span> 6L, ...) {</span>
-<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a>  <span class="fu">as.data.frame</span>(<span class="fu">lapply</span>(x, <span class="st">`</span><span class="at">[</span><span class="st">`</span>, <span class="fu">seq</span>(<span class="fu">nrow</span>(x) <span class="sc">-</span> n <span class="sc">+</span> 1L, <span class="fu">nrow</span>(x))))</span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>tail.my_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">n =</span> <span class="dv">6</span><span class="dt">L</span>, ...) {</span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a>  <span class="fu">as.data.frame</span>(<span class="fu">lapply</span>(x, <span class="st">`</span><span class="at">[</span><span class="st">`</span>, <span class="fu">seq</span>(<span class="fu">nrow</span>(x) <span class="sc">-</span> n <span class="sc">+</span> <span class="dv">1</span><span class="dt">L</span>, <span class="fu">nrow</span>(x))))</span>
 <span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a>}</span>
 <span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a></span>
 <span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a>print.my_tbl <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ..., <span class="at">n =</span> <span class="cn">NULL</span>, <span class="at">width =</span> <span class="cn">NULL</span>,</span>
